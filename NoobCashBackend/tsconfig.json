@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "target": "es6",
+    "rootDir": "./",
+    "esModuleInterop": true,
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+  }
+}
