@@ -4,11 +4,22 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "baseUrl": ".",
     "target": "es6",
     "rootDir": "./",
     "esModuleInterop": true,
     "typeRoots": [
       "node_modules/@types"
     ],
-  }
+    "paths": {
+      "*": [
+          "node_modules/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*"
+  ]
 }

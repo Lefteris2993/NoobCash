@@ -23,8 +23,8 @@ export interface NoobCashTransaction {
   receiverAddress: string;
   amount: number;
   transactionId: number;
-  transactionInputs: any; // care
-  transactionOutputs: any // care
+  transactionInputs: NoobCashTransactionInput[];
+  transactionOutputs: NoobCashTransactionOutput[];
   signature: string;
   validateTransaction: (transaction: NoobCashTransaction) => boolean;
 }
