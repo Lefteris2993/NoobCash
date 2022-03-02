@@ -1,3 +1,5 @@
+export type NoobCashCoins = number;
+
 export interface NoobCashBlock {
   index: number;
   timestamp: number;
@@ -7,9 +9,7 @@ export interface NoobCashBlock {
   previousHash: string;
 }
 
-export interface NoobCashBlockChain {
-  blocks: NoobCashBlock[];
-}
+export type NoobCashBlockChain = NoobCashBlock[];
 
 export interface NoobCashWallet {
   publicKey: string;
@@ -21,7 +21,7 @@ export interface NoobCashWallet {
 export interface NoobCashTransaction {
   senderAddress: string;
   receiverAddress: string;
-  amount: number;
+  amount: NoobCashCoins;
   transactionId: number;
   transactionInputs: NoobCashTransactionInput[];
   transactionOutputs: NoobCashTransactionOutput[];
@@ -31,12 +31,12 @@ export interface NoobCashTransaction {
 
 export interface NoobCashTransactionInput {
   previousOutputId: number;
-  amount: number;
+  amount: NoobCashCoins;
 }
 
 export interface NoobCashTransactionOutput {
   outputId: number;
   transactionId: number;
   receiverAddress: string;
-  amount: number;
+  amount: NoobCashCoins;
 }
