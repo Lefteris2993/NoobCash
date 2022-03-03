@@ -1,13 +1,12 @@
 import { Request, Response } from 'express';
-import { NodeInfo, NoobCashBlockChain } from "./interfaces";
+import { NodeInfo, NoobCashBlockChain, UTXO } from "./interfaces";
 import { TransactionOutput } from "./transactionOutput";
 import { Wallet } from "./wallet";
 
 export abstract class NoobCashNode {
-  public wallet!: Wallet;
-
+  protected wallet!: Wallet;
   protected nodeId!: number;
-  protected UTXOs: { owner: string; utxo: TransactionOutput }[] = [];
+  protected UTXOs: UTXO[] = [];
   protected blockChain: NoobCashBlockChain = [];
   protected nodesInfo: NodeInfo[] = [];
 
@@ -16,6 +15,6 @@ export abstract class NoobCashNode {
   }
 
   public abstract ignite (req: Request, res: Response): void;
-
   public abstract register(req: Request<any, any, NodeInfo>, res: Response): void;
+  public abstract info(req: Request<any, any, NodeInfo[]>, res: Response): void;
 }

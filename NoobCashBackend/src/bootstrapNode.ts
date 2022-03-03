@@ -5,7 +5,8 @@ import { NoobCashNode } from "./NoobCashNode";
 import { Transaction } from "./transaction";
 import { TransactionOutput } from "./transactionOutput";
 import { hash } from "./utils";
-import { NodeInfo } from "./interfaces";
+import { NodeInfo, PostInfoData } from "./interfaces";
+import axios, { AxiosResponse } from "axios";
 
 export class BootstrapNode extends NoobCashNode {
 
@@ -15,6 +16,33 @@ export class BootstrapNode extends NoobCashNode {
     this.nodesInfo.push({ 
       url: configuration.url, 
       publicKey: this.wallet.publicKey,
+    });
+  }
+
+  private async sendNodesInfoToAll() {
+    const resultMap = await Promise.all(
+      this.nodesInfo.map( x => {
+        return axios.post<any, AxiosResponse<any, any>, PostInfoData>(
+          `${x.url}/info`,
+          {
+            chain: this.blockChain,
+            utxos: this.UTXOs,
+            nodesInfo: this.nodesInfo,
+          }
+        );
+      })
+    );
+    console.log(resultMap);
+  }
+
+  private sendInitialCoinsToAllNodes() {
+    this.nodesInfo.forEach( x => {
+      let transaction = new Transaction(
+        this.wallet.publicKey,
+        x.publicKey,
+        100,
+      );
+      // More Here
     });
   }
   
@@ -36,24 +64,29 @@ export class BootstrapNode extends NoobCashNode {
     const genesisBlock = new Block(0, [genesisTransaction], '1', 0, hash([genesisTransaction]))
     this.UTXOs.push({
       owner: this.wallet.publicKey,
-      utxo: genesisUTXO,
+      utxo: [genesisUTXO],
     });
     this.blockChain.push(genesisBlock);
     res.status(200);
   }
 
-  public register(req: Request<any, any, NodeInfo>, res: Response): void {
+  public async register(req: Request<any, any, NodeInfo>, res: Response<{ nodeId: number }>): Promise<void> {
     const newNodeId = this.nodesInfo.length;
     this.nodesInfo.push({
       url: req.body.url,
       publicKey: req.body.publicKey,
     });
 
-    // Needs implementation;
+    this.UTXOs.push({ owner: req.body.publicKey, utxo: [] });
+    res.status(200).json({ nodeId: newNodeId });
     
-
     if (newNodeId === configuration.totalNodes) {
-      // do something
+      await this.sendNodesInfoToAll();
+      this.sendInitialCoinsToAllNodes();
     }
+  }
+
+  public info(req: Request<any, any, NodeInfo[]>, res: Response) {
+    res.status(418).send('I am a teapot');
   }
 }

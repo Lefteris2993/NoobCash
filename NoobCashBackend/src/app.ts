@@ -33,7 +33,7 @@ app.post('/block', () => {});
 app.put('/transactions:id', () => {});
 
 // Receive chain for initialization
-app.post('/info', () => {});
+app.post('/info', node.info);
 
 // Used only on bootstrap node to register a new node
 app.post('/register', node.register);

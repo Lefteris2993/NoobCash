@@ -1,3 +1,5 @@
+import { TransactionOutput } from "./transactionOutput";
+
 export type NoobCashCoins = number;
 
 export interface NoobCashBlock {
@@ -44,4 +46,15 @@ export interface NoobCashTransactionOutput {
 export interface NodeInfo {
   url: string;
   publicKey: string;
+}
+
+export interface UTXO {
+  owner: string;
+  utxo: TransactionOutput[];
+}
+
+export interface PostInfoData {
+  chain: NoobCashBlockChain,
+  utxos: UTXO[],
+  nodesInfo: NodeInfo[],
 }

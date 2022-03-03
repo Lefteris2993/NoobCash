@@ -11,10 +11,10 @@ export class SimpleNode extends NoobCashNode {
   }
   
   
-  public ignite (_: Request, res: Response) {
+  public async ignite (_: Request, res: Response) {
     while (true) {
       try {
-        let response = axios.post(`${configuration.bootstrapNodeUrl}/register`, {
+        let response = await axios.post(`${configuration.bootstrapNodeUrl}/register`, {
           url: configuration.url,
           publicKey: this.wallet.publicKey,
         })
@@ -29,5 +29,9 @@ export class SimpleNode extends NoobCashNode {
 
   public register(_: Request<any, any, NodeInfo>, res: Response): void {
     res.status(418).send('I am a teapot');
+  }
+
+  public info(req: Request<any, any, NodeInfo[]>, res: Response) {
+    // Needs implementing 
   }
 }
