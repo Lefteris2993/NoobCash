@@ -22,7 +22,7 @@ export interface NoobCashTransaction {
   senderAddress: string;
   receiverAddress: string;
   amount: NoobCashCoins;
-  transactionId: number;
+  transactionId: string;
   transactionInputs: NoobCashTransactionInput[];
   transactionOutputs: NoobCashTransactionOutput[];
   signature: string;
@@ -36,7 +36,7 @@ export interface NoobCashTransactionInput {
 
 export interface NoobCashTransactionOutput {
   outputId: number;
-  transactionId: number;
+  transactionId: string;
   receiverAddress: string;
   amount: NoobCashCoins;
 }

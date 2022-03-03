@@ -8,7 +8,18 @@ export class Block implements NoobCashBlock {
   public currentHash!: string;
   public previousHash!: string;
 
-  public Block() {
-
+  constructor(
+    index: number,
+    transactions: NoobCashTransaction[],
+    previousHash: string,
+    nonce: number,
+    currentHash: string,
+  ) {
+    this.index = index;
+    this.timestamp = Date.now();
+    this.transactions = transactions;
+    this.nonce = nonce;
+    this.currentHash = currentHash;
+    this.previousHash = previousHash;
   }
 }

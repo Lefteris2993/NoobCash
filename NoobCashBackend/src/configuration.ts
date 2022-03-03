@@ -8,4 +8,5 @@ export const configuration = {
   capacity: Number(process.env.CAPACITY || 5),
   port: Number(process.env.PORT || 3000),
   bootstrapNodeUrl: process.env.BOOTSTRAP_NODE_URL || 'http://localhost:3000',
+  secret: process.env.NODE_SECRET || 'secret',
 }

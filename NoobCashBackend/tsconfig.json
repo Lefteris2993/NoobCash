@@ -2,8 +2,8 @@
   "compilerOptions": {
     "module": "commonjs",
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
     "moduleResolution": "node",
     "noImplicitAny": true,
     "baseUrl": ".",
