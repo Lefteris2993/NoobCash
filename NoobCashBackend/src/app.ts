@@ -1,6 +1,8 @@
 import express from 'express';
+import { BootstrapNode } from './bootstrapNode';
 import { configuration } from './configuration';
-import { NoobCashNode } from './node';
+import { NoobCashNode } from './NoobCashNode';
+import { SimpleNode } from './simpleNode';
 
 const app = express();
 const port = configuration.port;
@@ -9,7 +11,12 @@ app.listen(port, () => {
   console.log(`NoobCash backend running on port: ${port}`);
 });
 
-const node = new NoobCashNode();
+let node: NoobCashNode;
+
+if (configuration.isBootstrap)
+  node = new BootstrapNode();
+else 
+  node = new SimpleNode()
 
 // An endpoint to see that the node is up and running
 app.get('/healthcheck', (_, res) => {
@@ -29,7 +36,7 @@ app.put('/transactions:id', () => {});
 app.post('/info', () => {});
 
 // Used only on bootstrap node to register a new node
-app.post('/register', () => {});
+app.post('/register', node.register);
 
 // Get the block chain
 app.get('/ignite', () => {});

@@ -40,3 +40,8 @@ export interface NoobCashTransactionOutput {
   receiverAddress: string;
   amount: NoobCashCoins;
 }
+
+export interface NodeInfo {
+  url: string;
+  publicKey: string;
+}
