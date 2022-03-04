@@ -10,4 +10,5 @@ export const configuration = {
   url: process.env.NODE_IP || 'http://192.168.0.1:3000',
   bootstrapNodeUrl: process.env.BOOTSTRAP_NODE_URL || 'http://localhost:3000',
   secret: process.env.NODE_SECRET || 'secret',
+  blockCapacity: Number(process.env.BLOCK_CAPACITY || 4),
 }

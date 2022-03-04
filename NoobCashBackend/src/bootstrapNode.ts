@@ -5,7 +5,7 @@ import { NoobCashNode } from "./NoobCashNode";
 import { Transaction } from "./transaction";
 import { TransactionOutput } from "./transactionOutput";
 import { hash } from "./utils";
-import { NodeInfo, PostInfoData } from "./interfaces";
+import { NodeInfo, PostInfoDTO } from "./interfaces";
 import axios, { AxiosResponse } from "axios";
 
 export class BootstrapNode extends NoobCashNode {
@@ -22,7 +22,7 @@ export class BootstrapNode extends NoobCashNode {
   private async sendNodesInfoToAll() {
     const resultMap = await Promise.all(
       this.nodesInfo.map( x => {
-        return axios.post<any, AxiosResponse<any, any>, PostInfoData>(
+        return axios.post<any, AxiosResponse<any, any>, PostInfoDTO>(
           `${x.url}/info`,
           {
             chain: this.blockChain,
@@ -61,7 +61,12 @@ export class BootstrapNode extends NoobCashNode {
       genesisTransaction.amount
     );
     genesisTransaction.transactionOutputs.push(genesisUTXO);
-    const genesisBlock = new Block(0, [genesisTransaction], '1', 0, hash([genesisTransaction]))
+    const genesisBlock = new Block();
+    genesisBlock.index = 0;
+    genesisBlock.transactions = [genesisTransaction];
+    genesisBlock.previousHash = '1';
+    genesisBlock.nonce = 0;
+    genesisBlock.currentHash = hash([genesisTransaction]);
     this.UTXOs.push({
       owner: this.wallet.publicKey,
       utxo: [genesisUTXO],

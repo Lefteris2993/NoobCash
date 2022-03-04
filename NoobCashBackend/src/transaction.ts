@@ -1,4 +1,6 @@
-import { NoobCashCoins, NoobCashTransaction, NoobCashTransactionInput, NoobCashTransactionOutput } from "./interfaces";
+import { NoobCashCoins, NoobCashTransaction, NoobCashTransactionInput, NoobCashTransactionOutput, UTXO, ValidateResult } from "./interfaces";
+import { TransactionInput } from "./transactionInput";
+import { TransactionOutput } from "./transactionOutput";
 import { hash } from "./utils";
 
 export class Transaction implements NoobCashTransaction {
@@ -19,7 +21,7 @@ export class Transaction implements NoobCashTransaction {
     transactionOutputs?: NoobCashTransactionOutput[],
     signature?: string,
   ) {
-   this.amount = amount;
+    this.amount = amount;
     this.senderAddress = senderAddress;
     this.receiverAddress = receiverAddress;
 
@@ -29,7 +31,7 @@ export class Transaction implements NoobCashTransaction {
     if (signature) this.signature = signature;
   }
 
-  public setTransactionId () {
+  public setTransactionId(): string {
     this.transactionId = hash({
       senderAddress: this.senderAddress,
       receiverAddress: this.receiverAddress,
@@ -39,8 +41,53 @@ export class Transaction implements NoobCashTransaction {
     });
     return this.transactionId;
   }
+
+  public signTransaction(): void {
+
+  }
   
-  public validateTransaction(transaction: NoobCashTransaction): boolean {
-    throw new Error("Not implemented");
+  public validate(senderUtxos: UTXO): ValidateResult {
+    let coins = 0;
+    const spentOutputs: TransactionOutput[] = [];
+    senderUtxos.utxo.forEach(utxo => {
+      if (coins >= this.amount) return;
+      coins += utxo.amount;
+      spentOutputs.push(utxo);
+    })
+    if (coins < this.amount)
+      throw new Error("Not enough NoobCash Coins");
+
+    const newInputs = spentOutputs.map( output => {
+      return new TransactionInput(output.outputId, output.amount);
+    });
+
+    return { newInputs: newInputs, usedOutputs: spentOutputs, coins: coins };
   };
+
+  public calculateOutputs(coins: NoobCashCoins): TransactionOutput[] {
+    const newOutputs: TransactionOutput[] = [];
+    if (coins > this.amount) {
+      newOutputs.push(new TransactionOutput(
+        this.transactionId,
+        this.receiverAddress,
+        this.amount,
+        0,
+      ));
+      newOutputs.push(new TransactionOutput(
+        this.transactionId,
+        this.senderAddress,
+        coins- this.amount,
+        1,
+      ));
+    } else {
+      newOutputs.push(new TransactionOutput(
+        this.transactionId,
+        this.receiverAddress,
+        this.amount,
+        0,
+      ))
+    }
+    this.transactionOutputs = newOutputs;
+    return newOutputs;
+  }
 }

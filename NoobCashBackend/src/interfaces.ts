@@ -1,3 +1,4 @@
+import { TransactionInput } from "./transactionInput";
 import { TransactionOutput } from "./transactionOutput";
 
 export type NoobCashCoins = number;
@@ -28,7 +29,13 @@ export interface NoobCashTransaction {
   transactionInputs: NoobCashTransactionInput[];
   transactionOutputs: NoobCashTransactionOutput[];
   signature: string;
-  validateTransaction: (transaction: NoobCashTransaction) => boolean;
+  validate: (senderUtxos: UTXO) => ValidateResult;
+}
+
+export interface ValidateResult { 
+  newInputs: TransactionInput[]; 
+  usedOutputs: TransactionOutput[];
+  coins: NoobCashCoins;
 }
 
 export interface NoobCashTransactionInput {
@@ -53,8 +60,13 @@ export interface UTXO {
   utxo: TransactionOutput[];
 }
 
-export interface PostInfoData {
+export interface PostInfoDTO {
   chain: NoobCashBlockChain,
   utxos: UTXO[],
   nodesInfo: NodeInfo[],
+}
+
+export interface PostTransactionDTO {
+  receiverAddress: string;
+  amount: NoobCashCoins;
 }
