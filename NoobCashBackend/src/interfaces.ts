@@ -1,3 +1,4 @@
+import { Block } from "./block";
 import { TransactionInput } from "./transactionInput";
 import { TransactionOutput } from "./transactionOutput";
 
@@ -12,7 +13,7 @@ export interface NoobCashBlock {
   previousHash: string;
 }
 
-export type NoobCashBlockChain = NoobCashBlock[];
+export type NoobCashBlockChain = Block[];
 
 export interface NoobCashWallet {
   publicKey: string;
@@ -69,4 +70,9 @@ export interface PostInfoDTO {
 export interface PostTransactionDTO {
   receiverAddress: string;
   amount: NoobCashCoins;
+}
+
+export interface MineResult {
+  nonce: number;
+  hash: string;
 }

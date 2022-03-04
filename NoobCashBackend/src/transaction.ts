@@ -1,3 +1,5 @@
+import { RSA_PKCS1_PSS_PADDING } from "constants";
+import { sign, verify } from "crypto";
 import { NoobCashCoins, NoobCashTransaction, NoobCashTransactionInput, NoobCashTransactionOutput, UTXO, ValidateResult } from "./interfaces";
 import { TransactionInput } from "./transactionInput";
 import { TransactionOutput } from "./transactionOutput";
@@ -42,8 +44,37 @@ export class Transaction implements NoobCashTransaction {
     return this.transactionId;
   }
 
-  public signTransaction(): void {
+  private getVerifiableData(): string {
+    return JSON.stringify({
+      transactionId: this.transactionId,
+      senderAddress: this.senderAddress,
+      receiverAddress: this.receiverAddress,
+      amount: this.amount,
+      transactionInputs: this.transactionInputs,
+      transactionOutputs: this.transactionOutputs,
+    });
+  }
 
+  public signTransaction(privateKey: string): void {
+    const verifiableData = this.getVerifiableData();
+    const signature = sign('sha256', Buffer.from(verifiableData), {
+      key: privateKey,
+      padding: RSA_PKCS1_PSS_PADDING,
+    }).toString();
+    this.signature = signature;
+  }
+
+  public verifySignature(): boolean {
+    const verifiableData = this.getVerifiableData();
+    return verify(
+      'sha256',
+      Buffer.from(verifiableData),
+      {
+        key: this.senderAddress,
+        padding: RSA_PKCS1_PSS_PADDING,
+      },
+      Buffer.from(this.signature)
+    )
   }
   
   public validate(senderUtxos: UTXO): ValidateResult {

@@ -30,7 +30,7 @@ app.post('/ignite', node.ignite);
 app.post('/block', () => {});
 
 // Receive new Transaction
-app.put('/transactions:id', () => {});
+app.put('/transactions', () => {});
 
 // Receive chain for initialization
 app.post('/info', node.info);
@@ -39,7 +39,7 @@ app.post('/info', node.info);
 app.post('/register', node.register);
 
 // Get the block chain
-app.get('/ignite', () => {});
+app.get('/chain', () => {});
 
 // Create a new Transaction
 app.post('/transactions', () => {});
