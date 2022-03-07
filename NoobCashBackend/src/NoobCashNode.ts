@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { Request, Response } from 'express';
 import { Block } from './block';
 import { configuration } from './configuration';
-import { NodeInfo, NoobCashBlockChain, NoobCashCoins, UTXO } from "./interfaces";
+import { NodeInfo, NoobCashBlockChain, NoobCashCoins, PostRegisterResponseDTO, UTXO } from "./interfaces";
 import { Transaction } from './transaction';
 import { NoobCashError } from './utils';
 import { Wallet } from "./wallet";
@@ -21,7 +21,7 @@ export abstract class NoobCashNode {
   }
 
   public abstract ignite (): Promise<void>;
-  public abstract register(req: Request<any, any, NodeInfo>, res: Response): void;
+  public abstract register(nodeInfo: NodeInfo): PostRegisterResponseDTO;
   public abstract info(nodeInfo: NodeInfo[], utxos: UTXO[], chain: NoobCashBlockChain): void;
 
   public async postTransaction(amount: NoobCashCoins, receiverAddress: string): Promise<void> {

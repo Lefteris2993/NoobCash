@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Request, Response } from 'express';
 import { configuration } from "./configuration";
-import { NodeInfo, NoobCashBlockChain, UTXO } from "./interfaces";
+import { NodeInfo, NoobCashBlockChain, PostRegisterResponseDTO, UTXO } from "./interfaces";
 import { NoobCashNode } from "./NoobCashNode";
 import { NoobCashError } from "./utils";
 
@@ -27,8 +27,8 @@ export class SimpleNode extends NoobCashNode {
     }
   }
 
-  public register(_: Request<any, any, NodeInfo>, res: Response): void {
-    res.status(418).send('I am a teapot');
+  public register(_: NodeInfo): PostRegisterResponseDTO {
+    throw new NoobCashError('I am a teapot', 418);
   }
 
   public info(nodeInfo: NodeInfo[], utxos: UTXO[], chain: NoobCashBlockChain) {

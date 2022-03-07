@@ -76,3 +76,11 @@ export interface MineResult {
   nonce: number;
   hash: string;
 }
+
+export interface PostRegisterDTO {
+  nodeInfo: NodeInfo;
+}
+
+export interface PostRegisterResponseDTO { 
+  nodeId: number 
+}

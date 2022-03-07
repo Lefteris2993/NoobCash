@@ -5,7 +5,7 @@ import { NoobCashNode } from "./NoobCashNode";
 import { Transaction } from "./transaction";
 import { TransactionOutput } from "./transactionOutput";
 import { hash, NoobCashError } from "./utils";
-import { NodeInfo, NoobCashBlockChain, PostInfoDTO, UTXO } from "./interfaces";
+import { NodeInfo, NoobCashBlockChain, PostInfoDTO, PostRegisterResponseDTO, UTXO } from "./interfaces";
 import axios, { AxiosResponse } from "axios";
 
 export class BootstrapNode extends NoobCashNode {
@@ -45,7 +45,11 @@ export class BootstrapNode extends NoobCashNode {
       // More Here
     });
   }
-  
+
+  private async syncNodes() {
+    await this.sendNodesInfoToAll();
+    this.sendInitialCoinsToAllNodes();
+  }
   
   public async ignite (): Promise<void>  {
     const genesisTransaction = new Transaction(
@@ -74,20 +78,17 @@ export class BootstrapNode extends NoobCashNode {
     this.blockChain.push(genesisBlock);;
   }
 
-  public async register(req: Request<any, any, NodeInfo>, res: Response<{ nodeId: number }>): Promise<void> {
+  public register(nodeInfo: NodeInfo): PostRegisterResponseDTO {
     const newNodeId = this.nodesInfo.length;
-    this.nodesInfo.push({
-      url: req.body.url,
-      publicKey: req.body.publicKey,
-    });
-
-    this.UTXOs.push({ owner: req.body.publicKey, utxo: [] });
-    res.status(200).json({ nodeId: newNodeId });
-    
     if (newNodeId === configuration.totalNodes) {
-      await this.sendNodesInfoToAll();
-      this.sendInitialCoinsToAllNodes();
+      this.syncNodes();
     }
+    this.nodesInfo.push({
+      url: nodeInfo.url,
+      publicKey: nodeInfo.publicKey,
+    });
+    this.UTXOs.push({ owner: nodeInfo.publicKey, utxo: [] });
+    return { nodeId: newNodeId };
   }
 
   public info(_info: NodeInfo[], _utxos: UTXO[], _chain: NoobCashBlockChain) {
