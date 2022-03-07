@@ -2,8 +2,9 @@ import axios, { AxiosResponse } from 'axios';
 import { Request, Response } from 'express';
 import { Block } from './block';
 import { configuration } from './configuration';
-import { NodeInfo, NoobCashBlockChain, PostTransactionDTO, UTXO, ValidateResult } from "./interfaces";
+import { NodeInfo, NoobCashBlockChain, NoobCashCoins, UTXO } from "./interfaces";
 import { Transaction } from './transaction';
+import { NoobCashError } from './utils';
 import { Wallet } from "./wallet";
 
 export abstract class NoobCashNode {
@@ -19,14 +20,11 @@ export abstract class NoobCashNode {
     this.currentBlock = new Block();
   }
 
-  public abstract ignite (req: Request, res: Response): void;
+  public abstract ignite (): Promise<void>;
   public abstract register(req: Request<any, any, NodeInfo>, res: Response): void;
-  public abstract info(req: Request<any, any, NodeInfo[]>, res: Response): void;
+  public abstract info(nodeInfo: NodeInfo[], utxos: UTXO[], chain: NoobCashBlockChain): void;
 
-  public async postTransaction(req: Request<any, any, PostTransactionDTO>, res: Response): Promise<void> {
-    const receiverAddress = req.body.receiverAddress;
-    const amount = req.body.amount;
-
+  public async postTransaction(amount: NoobCashCoins, receiverAddress: string): Promise<void> {
     const newTransaction = new Transaction(this.wallet.publicKey, receiverAddress, amount);
 
     if (this.currentBlock.transactions.length >= configuration.blockCapacity) {
@@ -35,18 +33,10 @@ export abstract class NoobCashNode {
 
     const senderUtxos = this.UTXOs.find(x => x.owner === this.wallet.publicKey);
     if (!senderUtxos) {
-      res.status(400).send('Bad request');
-      return;
+      throw new NoobCashError('Bad request', 400);
     }
 
-    let result: ValidateResult;
-    try {
-      result = newTransaction.validate(senderUtxos);
-    } catch (error) {
-      console.error(error);
-      res.status(400);
-      return;
-    }
+    let result = newTransaction.validate(senderUtxos);
     
     senderUtxos.utxo = senderUtxos.utxo.filter(x => 
       result.usedOutputs.find( y => y.outputId === x.outputId) === undefined

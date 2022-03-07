@@ -4,8 +4,8 @@ import { configuration } from "./configuration";
 import { NoobCashNode } from "./NoobCashNode";
 import { Transaction } from "./transaction";
 import { TransactionOutput } from "./transactionOutput";
-import { hash } from "./utils";
-import { NodeInfo, PostInfoDTO } from "./interfaces";
+import { hash, NoobCashError } from "./utils";
+import { NodeInfo, NoobCashBlockChain, PostInfoDTO, UTXO } from "./interfaces";
 import axios, { AxiosResponse } from "axios";
 
 export class BootstrapNode extends NoobCashNode {
@@ -47,7 +47,7 @@ export class BootstrapNode extends NoobCashNode {
   }
   
   
-  public ignite (_: Request, res: Response) {
+  public async ignite (): Promise<void>  {
     const genesisTransaction = new Transaction(
       'God',
       this.wallet.publicKey,
@@ -71,8 +71,7 @@ export class BootstrapNode extends NoobCashNode {
       owner: this.wallet.publicKey,
       utxo: [genesisUTXO],
     });
-    this.blockChain.push(genesisBlock);
-    res.status(200);
+    this.blockChain.push(genesisBlock);;
   }
 
   public async register(req: Request<any, any, NodeInfo>, res: Response<{ nodeId: number }>): Promise<void> {
@@ -91,7 +90,7 @@ export class BootstrapNode extends NoobCashNode {
     }
   }
 
-  public info(req: Request<any, any, NodeInfo[]>, res: Response) {
-    res.status(418).send('I am a teapot');
+  public info(_info: NodeInfo[], _utxos: UTXO[], _chain: NoobCashBlockChain) {
+    throw new NoobCashError('I am a teapot', 418);
   }
 }

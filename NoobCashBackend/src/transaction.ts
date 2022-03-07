@@ -3,7 +3,7 @@ import { sign, verify } from "crypto";
 import { NoobCashCoins, NoobCashTransaction, NoobCashTransactionInput, NoobCashTransactionOutput, UTXO, ValidateResult } from "./interfaces";
 import { TransactionInput } from "./transactionInput";
 import { TransactionOutput } from "./transactionOutput";
-import { hash } from "./utils";
+import { hash, NoobCashError } from "./utils";
 
 export class Transaction implements NoobCashTransaction {
   public senderAddress!: string;
@@ -86,7 +86,7 @@ export class Transaction implements NoobCashTransaction {
       spentOutputs.push(utxo);
     })
     if (coins < this.amount)
-      throw new Error("Not enough NoobCash Coins");
+      throw new NoobCashError('Not enough NoobCash Coins', 400);
 
     const newInputs = spentOutputs.map( output => {
       return new TransactionInput(output.outputId, output.amount);

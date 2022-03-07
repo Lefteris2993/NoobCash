@@ -1,8 +1,9 @@
 import axios from "axios";
 import { Request, Response } from 'express';
 import { configuration } from "./configuration";
-import { NodeInfo } from "./interfaces";
+import { NodeInfo, NoobCashBlockChain, UTXO } from "./interfaces";
 import { NoobCashNode } from "./NoobCashNode";
+import { NoobCashError } from "./utils";
 
 export class SimpleNode extends NoobCashNode {
 
@@ -11,7 +12,7 @@ export class SimpleNode extends NoobCashNode {
   }
   
   
-  public async ignite (_: Request, res: Response) {
+  public async ignite (): Promise<void> {
     while (true) {
       try {
         let response = await axios.post(`${configuration.bootstrapNodeUrl}/register`, {
@@ -24,14 +25,13 @@ export class SimpleNode extends NoobCashNode {
         // Do nothing
       }
     }
-    res.status(200);
   }
 
   public register(_: Request<any, any, NodeInfo>, res: Response): void {
     res.status(418).send('I am a teapot');
   }
 
-  public info(req: Request<any, any, NodeInfo[]>, res: Response) {
-    // Needs implementing 
+  public info(nodeInfo: NodeInfo[], utxos: UTXO[], chain: NoobCashBlockChain) {
+    throw new NoobCashError('Not implemented', 501);
   }
 }

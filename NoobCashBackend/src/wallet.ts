@@ -1,6 +1,7 @@
 import { NoobCashTransaction, NoobCashWallet } from "./interfaces";
 import { generateKeyPair } from "crypto";
 import { configuration } from "./configuration";
+import { NoobCashError } from "./utils";
 
 export class Wallet implements NoobCashWallet {
   public publicKey!: string;
@@ -35,6 +36,6 @@ export class Wallet implements NoobCashWallet {
   };
   
   public verifyTransaction(transaction: NoobCashTransaction): boolean {
-    throw new Error("Not implemented");
+    throw new NoobCashError('Not implemented', 501);
   };
 }
