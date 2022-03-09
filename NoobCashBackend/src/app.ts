@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { NextFunction } from 'express';
 import { BootstrapNode } from './bootstrapNode';
 import { configuration } from './configuration';
 import { NoobCashNode } from './NoobCashNode';
@@ -16,12 +16,23 @@ import {
   PutTransactionDTO 
 } from './interfaces';
 import { NoobCashError } from './utils';
+import * as fs from 'fs';
 
 const app = express();
 const port = configuration.port;
 
-app.listen(port, () => {
-  console.log(`NoobCash backend running on port: ${port}`);
+// Write pid to file
+fs.writeFileSync(`.pid${configuration.port % 10}`, `${process.pid}`);
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use((
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  console.log('\x1b[32m', `[Timestamp]: ${Date.now()} [URL]: ${req.url} [Method]: ${req.method}`, '\x1b[0m');
+  return next();
 });
 
 let node: NoobCashNode;
@@ -39,7 +50,7 @@ app.get('/healthcheck', (_, res) => {
 // Initialize node, join network
 app.post('/ignite', async (_: Request, res: Response) => {
   await node.ignite();
-  res.status(200);
+  res.status(200).send('OK');
 });
 
 // Receive new block
@@ -47,7 +58,7 @@ app.post('/block', (req: Request<any, any, PostBlockDTO>, res: Response) => {
   const block = req.body.block;
   try {
     node.postBlock(block);
-    res.status(200);
+    res.status(200).send('OK');
   } catch (e) {
     const error = e as NoobCashError;
     res.status(error.status).send(error.message);
@@ -57,9 +68,10 @@ app.post('/block', (req: Request<any, any, PostBlockDTO>, res: Response) => {
 // Receive new Transaction
 app.put('/transactions', (req: Request<any, any, PutTransactionDTO>, res: Response) => {
   const transaction = req.body.transaction;
+  console.log(transaction);
   try {
     node.putTransaction(transaction);
-    res.status(200);
+    res.status(200).send('OK');
   } catch (e) {
     const error = e as NoobCashError;
     res.status(error.status).send(error.message);
@@ -73,7 +85,7 @@ app.post('/info', (req: Request<any, any, PostInfoDTO>, res: Response) => {
   const chain = req.body.chain;
   try {
     node.info(nodeInfo, utxos, chain);
-    res.status(200);
+    res.status(200).send('OK');
   } catch (e) {
     const error = e as NoobCashError;
     res.status(error.status).send(error.message);
@@ -109,7 +121,7 @@ app.post('/transactions', (req: Request<any, any, PostTransactionDTO>, res: Resp
   const receiverAddress = req.body.receiverAddress;
   try {
     node.postTransaction(amount, receiverAddress);
-    res.status(200);
+    res.status(200).send('OK');
   } catch (e) {
     const error = e as NoobCashError;
     res.status(error.status).send(error.message);
@@ -136,4 +148,8 @@ app.get('/balance', (_: Request, res: Response<GetBalanceResponseDTO | string>) 
     const error = e as NoobCashError;
     res.status(error.status).send(error.message);
   }
+});
+
+app.listen(port, () => {
+  console.log(`NoobCash backend running on port: ${port}`);
 });

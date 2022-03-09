@@ -1,6 +1,6 @@
 import axios from "axios";
 import { configuration } from "./configuration";
-import { NodeInfo, NoobCashBlockChain, PostRegisterResponseDTO, UTXO } from "./interfaces";
+import { NodeInfo, NoobCashBlockChain, PostRegisterDTO, PostRegisterResponseDTO, UTXO } from "./interfaces";
 import { NoobCashNode } from "./NoobCashNode";
 import { NoobCashError } from "./utils";
 
@@ -13,11 +13,14 @@ export class SimpleNode extends NoobCashNode {
   public async ignite (): Promise<void> {
     while (true) {
       try {
-        let response = await axios.post(`${configuration.bootstrapNodeUrl}/register`, {
-          url: configuration.url,
-          publicKey: this.wallet.publicKey,
-        })
-        console.log(response);
+        const data: PostRegisterDTO = {
+          nodeInfo: {
+            url: configuration.url,
+            publicKey: this.wallet.publicKey,
+          }
+        }
+        let response = await axios.post<PostRegisterResponseDTO>(`${configuration.bootstrapNodeUrl}/register`, data);
+        this.nodeId = response.data.nodeId;
         break;
       } catch (error) {
         // Do nothing

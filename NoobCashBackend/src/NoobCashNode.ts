@@ -1,8 +1,18 @@
 import axios, { AxiosResponse } from 'axios';
-import { Request, Response } from 'express';
 import { Block } from './block';
 import { configuration } from './configuration';
-import { GetBalanceResponseDTO, GetChainResponseDTO, GetTransactionsResponseDTO, NodeInfo, NoobCashBlockChain, NoobCashCoins, PostRegisterResponseDTO, UTXO } from "./interfaces";
+import { 
+  GetBalanceResponseDTO, 
+  GetChainResponseDTO, 
+  GetTransactionsResponseDTO, 
+  NodeInfo, 
+  NoobCashBlock, 
+  NoobCashBlockChain, 
+  NoobCashCoins, 
+  NoobCashTransaction, 
+  PostRegisterResponseDTO, 
+  UTXO 
+} from "./interfaces";
 import { Transaction } from './transaction';
 import { NoobCashError } from './utils';
 import { Wallet } from "./wallet";
@@ -42,7 +52,8 @@ export abstract class NoobCashNode {
     return { chain: this.blockChain };
   }
 
-  public async putTransaction(transaction: Transaction) {
+  public async putTransaction(t: NoobCashTransaction) {
+    const transaction = Transaction.toTransaction(t);
     if (!transaction.verifySignature()) throw new NoobCashError('Invalid Transaction', 400);
     const senderUtxos = this.UTXOs.find(x => x.owner === this.wallet.publicKey);
     if (!senderUtxos) {
@@ -54,7 +65,8 @@ export abstract class NoobCashNode {
     } 
   }
   
-  public postBlock(block: Block) {
+  public postBlock(b: NoobCashBlock) {
+    const block = Block.toBlock(b);
     if (!(block.validateHash() && this.blockChain[this.blockChain.length - 1].currentHash === block.previousHash)) {
       this.resolveConflict();
     }

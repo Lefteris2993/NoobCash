@@ -1,11 +1,11 @@
 import { NoobCashCoins, NoobCashTransactionInput } from "./interfaces";
 
 export class TransactionInput implements NoobCashTransactionInput {
-  public previousOutputId!: number;
+  public previousOutputId!: string;
   public amount!: NoobCashCoins;
 
   constructor(
-    previousOutputId: number,
+    previousOutputId: string,
     amount: NoobCashCoins,
   ) {
     this.previousOutputId = previousOutputId;

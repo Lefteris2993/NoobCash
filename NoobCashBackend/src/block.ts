@@ -15,6 +15,19 @@ export class Block implements NoobCashBlock {
     this.timestamp = Date.now();
   }
 
+  public static toBlock(block: NoobCashBlock): Block {
+    const newBlock = new Block();
+    newBlock.index = block.index;
+    newBlock.timestamp = block.timestamp;
+    block.transactions.forEach( x => {
+      newBlock.transactions.push(Transaction.toTransaction(x));
+    });
+    newBlock.nonce = block.nonce;
+    newBlock.currentHash = block.currentHash;
+    newBlock.previousHash = block.previousHash;
+    return newBlock;
+  }
+
   public async mine() {
     const minePromise = new Promise<MineResult>((resolve, reject) => {
       let i = 1;

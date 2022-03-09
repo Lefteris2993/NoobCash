@@ -1,5 +1,6 @@
 import { RSA_PKCS1_PSS_PADDING } from "constants";
 import { sign, verify } from "crypto";
+import { configuration } from "./configuration";
 import { NoobCashCoins, NoobCashTransaction, NoobCashTransactionInput, NoobCashTransactionOutput, UTXO, ValidateResult } from "./interfaces";
 import { TransactionInput } from "./transactionInput";
 import { TransactionOutput } from "./transactionOutput";
@@ -35,6 +36,20 @@ export class Transaction implements NoobCashTransaction {
     if (signature) this.signature = signature;
   }
 
+  public static toTransaction(transaction: NoobCashTransaction): Transaction {
+    const newTransaction = new Transaction(
+      transaction.senderAddress,
+      transaction.receiverAddress,
+      transaction.amount,
+      transaction.transactionInputs,
+      transaction.transactionId,
+      transaction.transactionOutputs,
+      transaction.signature,
+    );
+    newTransaction.timestamp = transaction.timestamp;
+    return newTransaction;
+  }
+
   public setTransactionId(): string {
     this.transactionId = hash({
       senderAddress: this.senderAddress,
@@ -61,6 +76,7 @@ export class Transaction implements NoobCashTransaction {
     const verifiableData = this.getVerifiableData();
     const signature = sign('sha256', Buffer.from(verifiableData), {
       key: privateKey,
+      passphrase: configuration.secret,
       padding: RSA_PKCS1_PSS_PADDING,
     }).toString();
     this.signature = signature;
@@ -104,20 +120,17 @@ export class Transaction implements NoobCashTransaction {
         this.transactionId,
         this.receiverAddress,
         this.amount,
-        0,
       ));
       newOutputs.push(new TransactionOutput(
         this.transactionId,
         this.senderAddress,
         coins- this.amount,
-        1,
       ));
     } else {
       newOutputs.push(new TransactionOutput(
         this.transactionId,
         this.receiverAddress,
         this.amount,
-        0,
       ))
     }
     this.transactionOutputs = newOutputs;

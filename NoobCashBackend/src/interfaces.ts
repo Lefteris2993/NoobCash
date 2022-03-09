@@ -30,7 +30,6 @@ export interface NoobCashTransaction {
   transactionOutputs: NoobCashTransactionOutput[];
   signature: string;
   timestamp: number;
-  validate: (senderUtxos: UTXO) => ValidateResult;
 }
 
 export interface ValidateResult { 
@@ -40,12 +39,12 @@ export interface ValidateResult {
 }
 
 export interface NoobCashTransactionInput {
-  previousOutputId: number;
+  previousOutputId: string;
   amount: NoobCashCoins;
 }
 
 export interface NoobCashTransactionOutput {
-  outputId: number;
+  outputId: string;
   transactionId: string;
   receiverAddress: string;
   amount: NoobCashCoins;
@@ -86,19 +85,19 @@ export interface PostRegisterResponseDTO {
 }
 
 export interface PostBlockDTO {
-  block: Block;
+  block: NoobCashBlock;
 }
 
 export interface PutTransactionDTO {
-  transaction: Transaction,
+  transaction: NoobCashTransaction,
 }
 
 export interface GetChainResponseDTO {
-  chain: NoobCashBlockChain,
+  chain: NoobCashBlock[],
 }
 
 export interface GetTransactionsResponseDTO {
-  transactions: Transaction[];
+  transactions: NoobCashTransaction[];
 }
 
 export interface GetBalanceResponseDTO {

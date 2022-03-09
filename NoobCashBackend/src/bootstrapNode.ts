@@ -12,15 +12,12 @@ export class BootstrapNode extends NoobCashNode {
   constructor() {
     super();
     this.nodeId = 0;
-    this.nodesInfo.push({ 
-      url: configuration.url, 
-      publicKey: this.wallet.publicKey,
-    });
   }
 
   private async sendNodesInfoToAll() {
     const resultMap = await Promise.all(
       this.nodesInfo.map( x => {
+        if (x.publicKey === this.wallet.publicKey) return;
         return axios.post<any, AxiosResponse<any, any>, PostInfoDTO>(
           `${x.url}/info`,
           {
@@ -31,16 +28,15 @@ export class BootstrapNode extends NoobCashNode {
         );
       })
     );
-    console.log(resultMap);
   }
 
   private async sendInitialCoinsToAllNodes() {
     const resultMap = await Promise.all(
       this.nodesInfo.map( node => {
+        if (node.publicKey === this.wallet.publicKey) return;
         return this.postTransaction(100, node.publicKey);
       })
     );
-    console.log(resultMap);
   }
 
   private async syncNodes() {
@@ -49,6 +45,10 @@ export class BootstrapNode extends NoobCashNode {
   }
   
   public async ignite (): Promise<void>  {
+    this.nodesInfo.push({ 
+      url: configuration.url, 
+      publicKey: this.wallet.publicKey,
+    });
     const genesisTransaction = new Transaction(
       'God',
       this.wallet.publicKey,
@@ -76,7 +76,7 @@ export class BootstrapNode extends NoobCashNode {
 
   public register(nodeInfo: NodeInfo): PostRegisterResponseDTO {
     const newNodeId = this.nodesInfo.length;
-    if (newNodeId === configuration.totalNodes) {
+    if (newNodeId === configuration.totalNodes - 1) {
       this.syncNodes();
     }
     this.nodesInfo.push({
