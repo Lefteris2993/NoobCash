@@ -1,11 +1,12 @@
 import { configuration } from "./configuration";
-import { MineResult, NoobCashBlock, NoobCashTransaction } from "./interfaces";
+import { MineResult, NoobCashBlock } from "./interfaces";
+import { Transaction } from "./transaction";
 import { hash } from "./utils";
 
 export class Block implements NoobCashBlock {
   public index!: number;
   public timestamp!: number;
-  public transactions: NoobCashTransaction[] = [];
+  public transactions: Transaction[] = [];
   public nonce!: number;
   public currentHash!: string;
   public previousHash!: string;

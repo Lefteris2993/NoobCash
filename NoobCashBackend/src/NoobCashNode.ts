@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { Request, Response } from 'express';
 import { Block } from './block';
 import { configuration } from './configuration';
-import { NodeInfo, NoobCashBlockChain, NoobCashCoins, PostRegisterResponseDTO, UTXO } from "./interfaces";
+import { GetBalanceResponseDTO, GetChainResponseDTO, GetTransactionsResponseDTO, NodeInfo, NoobCashBlockChain, NoobCashCoins, PostRegisterResponseDTO, UTXO } from "./interfaces";
 import { Transaction } from './transaction';
 import { NoobCashError } from './utils';
 import { Wallet } from "./wallet";
@@ -24,12 +24,56 @@ export abstract class NoobCashNode {
   public abstract register(nodeInfo: NodeInfo): PostRegisterResponseDTO;
   public abstract info(nodeInfo: NodeInfo[], utxos: UTXO[], chain: NoobCashBlockChain): void;
 
-  public async postTransaction(amount: NoobCashCoins, receiverAddress: string): Promise<void> {
-    const newTransaction = new Transaction(this.wallet.publicKey, receiverAddress, amount);
+  public getBalance(): GetBalanceResponseDTO {
+    let amount = 0;
+    const utxos = this.UTXOs.find(x => x.owner ===  this.wallet.publicKey);
+    if (!utxos) throw new NoobCashError('Bad request', 400);
+    utxos.utxo.forEach(x => {
+      amount += x.amount;
+    });
+    return { amount: amount }
+  }
 
+  public getTransactions(): GetTransactionsResponseDTO {
+    return { transactions: this.blockChain[this.blockChain.length - 1].transactions }
+  }
+
+  public getChain(): GetChainResponseDTO {
+    return { chain: this.blockChain };
+  }
+
+  public async putTransaction(transaction: Transaction) {
+    if (!transaction.verifySignature()) throw new NoobCashError('Invalid Transaction', 400);
+    const senderUtxos = this.UTXOs.find(x => x.owner === this.wallet.publicKey);
+    if (!senderUtxos) {
+      throw new NoobCashError('Bad request', 400);
+    }
+    transaction.validate(senderUtxos);
     if (this.currentBlock.transactions.length >= configuration.blockCapacity) {
       await this.mineAndAddBlock();
+    } 
+  }
+  
+  public postBlock(block: Block) {
+    if (!(block.validateHash() && this.blockChain[this.blockChain.length - 1].currentHash === block.previousHash)) {
+      this.resolveConflict();
     }
+    let valid = true;
+    const shouldRemoveIndexes: number[] = [];
+    block.transactions.forEach(x => {
+      const transactionIndex = this.currentBlock.transactions.findIndex(y => y.transactionId === x.transactionId);
+      if (transactionIndex > 0) {
+        shouldRemoveIndexes.push(transactionIndex);
+      } else {
+        valid = x.verifySignature();
+      }
+    });
+    if (!valid) throw new NoobCashError('Invalid block', 400);
+    this.blockChain.push(block);
+  }
+
+  public async postTransaction(amount: NoobCashCoins, receiverAddress: string): Promise<void> {
+    const newTransaction = new Transaction(this.wallet.publicKey, receiverAddress, amount);
 
     const senderUtxos = this.UTXOs.find(x => x.owner === this.wallet.publicKey);
     if (!senderUtxos) {
@@ -56,8 +100,10 @@ export abstract class NoobCashNode {
     } catch (error) {
       console.error(error);
     }
-
     this.currentBlock.transactions.push(newTransaction);
+    if (this.currentBlock.transactions.length >= configuration.blockCapacity) {
+      await this.mineAndAddBlock();
+    }
   }
 
   private async mineAndAddBlock() {
@@ -101,15 +147,12 @@ export abstract class NoobCashNode {
 
   private validateChain(chain: NoobCashBlockChain): boolean {
     if (JSON.stringify(chain[0]) !== JSON.stringify(this.blockChain)) return false;
-
     for (let i = 0; i < chain.length - 1; ++i) {
       const prevBlock = chain[i];
       const nextBlock = chain[i+1];
       if (prevBlock.currentHash !== nextBlock.previousHash) return false;
       if (!nextBlock.validateHash()) return false;
-      // maybe validate Transaction also...
     }
-
     return true;
   }
 }

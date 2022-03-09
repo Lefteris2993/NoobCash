@@ -1,5 +1,4 @@
 import { Block } from "./block";
-import { Request, Response } from 'express';
 import { configuration } from "./configuration";
 import { NoobCashNode } from "./NoobCashNode";
 import { Transaction } from "./transaction";
@@ -35,20 +34,18 @@ export class BootstrapNode extends NoobCashNode {
     console.log(resultMap);
   }
 
-  private sendInitialCoinsToAllNodes() {
-    this.nodesInfo.forEach( x => {
-      let transaction = new Transaction(
-        this.wallet.publicKey,
-        x.publicKey,
-        100,
-      );
-      // More Here
-    });
+  private async sendInitialCoinsToAllNodes() {
+    const resultMap = await Promise.all(
+      this.nodesInfo.map( node => {
+        return this.postTransaction(100, node.publicKey);
+      })
+    );
+    console.log(resultMap);
   }
 
   private async syncNodes() {
     await this.sendNodesInfoToAll();
-    this.sendInitialCoinsToAllNodes();
+    await this.sendInitialCoinsToAllNodes();
   }
   
   public async ignite (): Promise<void>  {
@@ -56,7 +53,6 @@ export class BootstrapNode extends NoobCashNode {
       'God',
       this.wallet.publicKey,
       configuration.totalNodes * 100,
-
     );
     genesisTransaction.setTransactionId();
     const genesisUTXO = new TransactionOutput(
@@ -75,7 +71,7 @@ export class BootstrapNode extends NoobCashNode {
       owner: this.wallet.publicKey,
       utxo: [genesisUTXO],
     });
-    this.blockChain.push(genesisBlock);;
+    this.blockChain.push(genesisBlock);
   }
 
   public register(nodeInfo: NodeInfo): PostRegisterResponseDTO {

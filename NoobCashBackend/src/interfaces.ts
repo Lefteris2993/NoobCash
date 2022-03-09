@@ -1,4 +1,5 @@
 import { Block } from "./block";
+import { Transaction } from "./transaction";
 import { TransactionInput } from "./transactionInput";
 import { TransactionOutput } from "./transactionOutput";
 
@@ -18,8 +19,6 @@ export type NoobCashBlockChain = Block[];
 export interface NoobCashWallet {
   publicKey: string;
   privateKey: string;
-  signTransaction: (transaction: NoobCashTransaction) => void;
-  verifyTransaction: (transaction: NoobCashTransaction) => boolean;
 }
 
 export interface NoobCashTransaction {
@@ -30,6 +29,7 @@ export interface NoobCashTransaction {
   transactionInputs: NoobCashTransactionInput[];
   transactionOutputs: NoobCashTransactionOutput[];
   signature: string;
+  timestamp: number;
   validate: (senderUtxos: UTXO) => ValidateResult;
 }
 
@@ -83,4 +83,24 @@ export interface PostRegisterDTO {
 
 export interface PostRegisterResponseDTO { 
   nodeId: number 
+}
+
+export interface PostBlockDTO {
+  block: Block;
+}
+
+export interface PutTransactionDTO {
+  transaction: Transaction,
+}
+
+export interface GetChainResponseDTO {
+  chain: NoobCashBlockChain,
+}
+
+export interface GetTransactionsResponseDTO {
+  transactions: Transaction[];
+}
+
+export interface GetBalanceResponseDTO {
+  amount: NoobCashCoins;
 }

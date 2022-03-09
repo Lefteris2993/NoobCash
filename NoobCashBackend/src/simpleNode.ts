@@ -1,5 +1,4 @@
 import axios from "axios";
-import { Request, Response } from 'express';
 import { configuration } from "./configuration";
 import { NodeInfo, NoobCashBlockChain, PostRegisterResponseDTO, UTXO } from "./interfaces";
 import { NoobCashNode } from "./NoobCashNode";
@@ -10,8 +9,7 @@ export class SimpleNode extends NoobCashNode {
   constructor() {
     super();
   }
-  
-  
+
   public async ignite (): Promise<void> {
     while (true) {
       try {
@@ -32,6 +30,8 @@ export class SimpleNode extends NoobCashNode {
   }
 
   public info(nodeInfo: NodeInfo[], utxos: UTXO[], chain: NoobCashBlockChain) {
-    throw new NoobCashError('Not implemented', 501);
+    this.nodesInfo = nodeInfo;
+    this.UTXOs = utxos;
+    this.blockChain = chain;
   }
 }

@@ -30,12 +30,4 @@ export class Wallet implements NoobCashWallet {
       }
     );
   }
-  
-  public signTransaction(transaction: NoobCashTransaction): void {
-    
-  };
-  
-  public verifyTransaction(transaction: NoobCashTransaction): boolean {
-    throw new NoobCashError('Not implemented', 501);
-  };
 }

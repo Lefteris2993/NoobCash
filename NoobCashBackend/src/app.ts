@@ -4,7 +4,17 @@ import { configuration } from './configuration';
 import { NoobCashNode } from './NoobCashNode';
 import { SimpleNode } from './simpleNode';
 import { Request, Response } from 'express';
-import { PostInfoDTO, PostRegisterDTO, PostRegisterResponseDTO, PostTransactionDTO } from './interfaces';
+import { 
+  GetBalanceResponseDTO, 
+  GetChainResponseDTO, 
+  GetTransactionsResponseDTO, 
+  PostBlockDTO, 
+  PostInfoDTO, 
+  PostRegisterDTO, 
+  PostRegisterResponseDTO, 
+  PostTransactionDTO, 
+  PutTransactionDTO 
+} from './interfaces';
 import { NoobCashError } from './utils';
 
 const app = express();
@@ -33,10 +43,28 @@ app.post('/ignite', async (_: Request, res: Response) => {
 });
 
 // Receive new block
-app.post('/block', () => {});
+app.post('/block', (req: Request<any, any, PostBlockDTO>, res: Response) => {
+  const block = req.body.block;
+  try {
+    node.postBlock(block);
+    res.status(200);
+  } catch (e) {
+    const error = e as NoobCashError;
+    res.status(error.status).send(error.message);
+  }
+});
 
 // Receive new Transaction
-app.put('/transactions', () => {});
+app.put('/transactions', (req: Request<any, any, PutTransactionDTO>, res: Response) => {
+  const transaction = req.body.transaction;
+  try {
+    node.putTransaction(transaction);
+    res.status(200);
+  } catch (e) {
+    const error = e as NoobCashError;
+    res.status(error.status).send(error.message);
+  }
+});
 
 // Receive chain for initialization
 app.post('/info', (req: Request<any, any, PostInfoDTO>, res: Response) => {
@@ -65,7 +93,15 @@ app.post('/register', (req: Request<any, any, PostRegisterDTO>, res: Response<Po
 });
 
 // Get the block chain
-app.get('/chain', () => {});
+app.get('/chain', (_: Request, res: Response<GetChainResponseDTO | string>) => {
+  try {
+    const result = node.getChain();
+    res.status(200).send(result);
+  } catch (e) {
+    const error = e as NoobCashError;
+    res.status(error.status).send(error.message);
+  }
+});
 
 // Create a new Transaction
 app.post('/transactions', (req: Request<any, any, PostTransactionDTO>, res: Response) => {
@@ -81,7 +117,23 @@ app.post('/transactions', (req: Request<any, any, PostTransactionDTO>, res: Resp
 });
 
 // Get list of Transactions
-app.get('/transactions', () => {});
+app.get('/transactions', (_: Request, res: Response<GetTransactionsResponseDTO | string>) => {
+  try {
+    const result = node.getTransactions();
+    res.status(200).send(result);
+  } catch (e) {
+    const error = e as NoobCashError;
+    res.status(error.status).send(error.message);
+  }
+});
 
 // Get balance
-app.get('/balance', () => {});
+app.get('/balance', (_: Request, res: Response<GetBalanceResponseDTO | string>) => {
+  try {
+    const result = node.getBalance();
+    res.status(200).send(result);
+  } catch (e) {
+    const error = e as NoobCashError;
+    res.status(error.status).send(error.message);
+  }
+});

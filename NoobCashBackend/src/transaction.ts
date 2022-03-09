@@ -13,6 +13,7 @@ export class Transaction implements NoobCashTransaction {
   public transactionInputs: NoobCashTransactionInput[] = [];
   public transactionOutputs: NoobCashTransactionOutput[] = [];
   public signature!: string;
+  public timestamp!: number;
 
   constructor (
     senderAddress: string,
@@ -26,6 +27,7 @@ export class Transaction implements NoobCashTransaction {
     this.amount = amount;
     this.senderAddress = senderAddress;
     this.receiverAddress = receiverAddress;
+    this.timestamp = Date.now();
 
     if (transactionId) this.transactionId = transactionId;
     if (transactionOutputs) this.transactionOutputs = transactionOutputs;
@@ -39,7 +41,7 @@ export class Transaction implements NoobCashTransaction {
       receiverAddress: this.receiverAddress,
       amount: this.amount,
       transactionInputs: this.transactionInputs,
-      timestamp: Date.now(),
+      timestamp: this.timestamp,
     });
     return this.transactionId;
   }
