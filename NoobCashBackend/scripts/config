@@ -2,6 +2,7 @@ _DIFFICULTY=4
 _TOTAL_NODES=2
 _BLOCK_CAPACITY=4
 _APP_LOCATION=/home/lefto/NoobCash/NoobCashBackend
+_PRODUCTION=true
 
 _PORT=300
 

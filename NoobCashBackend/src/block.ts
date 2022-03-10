@@ -3,6 +3,8 @@ import { MineResult, NoobCashBlock } from "./interfaces";
 import { Transaction } from "./transaction";
 import { hash } from "./utils";
 
+const MY_MAX_INT = 8589934592;
+
 export class Block implements NoobCashBlock {
   public index!: number;
   public timestamp!: number;
@@ -29,9 +31,11 @@ export class Block implements NoobCashBlock {
   }
 
   public async mine() {
+    console.log('Starting mining...');
     const minePromise = new Promise<MineResult>((resolve, reject) => {
-      let i = 1;
-      while(i < 2 ** 33) {
+      let i = Math.floor(Math.random() * MY_MAX_INT);
+      const zeros = '0'.repeat(configuration.difficulty);
+      while(true) {
         const currentHash = hash({
           index: this.index,
           timestamp: this.timestamp,
@@ -39,12 +43,13 @@ export class Block implements NoobCashBlock {
           nonce: i,
           previousHash: this.previousHash,
         });
-        const zeros = '0'.repeat(configuration.difficulty);
-        if (currentHash.slice(0, configuration.difficulty) === zeros) {
+        if (currentHash.startsWith(zeros)) {
+          console.log((new Date).toISOString(), currentHash, i);
           resolve({ nonce: i, hash: currentHash });
+          break;
         }
+        i = (i + 1) % MY_MAX_INT;
       }
-      reject('nonce does not exist!');
     });
 
     let result: MineResult = { nonce: -1, hash: '-1' };

@@ -13,7 +13,7 @@ export class Transaction implements NoobCashTransaction {
   public transactionId!: string;
   public transactionInputs: NoobCashTransactionInput[] = [];
   public transactionOutputs: NoobCashTransactionOutput[] = [];
-  public signature!: string;
+  public signature!: Buffer;
   public timestamp!: number;
 
   constructor (
@@ -23,7 +23,7 @@ export class Transaction implements NoobCashTransaction {
     transactionInputs?: NoobCashTransactionInput[],
     transactionId?: string,
     transactionOutputs?: NoobCashTransactionOutput[],
-    signature?: string,
+    signature?: Buffer,
   ) {
     this.amount = amount;
     this.senderAddress = senderAddress;
@@ -44,7 +44,7 @@ export class Transaction implements NoobCashTransaction {
       transaction.transactionInputs,
       transaction.transactionId,
       transaction.transactionOutputs,
-      transaction.signature,
+      Buffer.from(transaction.signature),
     );
     newTransaction.timestamp = transaction.timestamp;
     return newTransaction;
@@ -78,7 +78,7 @@ export class Transaction implements NoobCashTransaction {
       key: privateKey,
       passphrase: configuration.secret,
       padding: RSA_PKCS1_PSS_PADDING,
-    }).toString();
+    });
     this.signature = signature;
   }
 
@@ -91,7 +91,7 @@ export class Transaction implements NoobCashTransaction {
         key: this.senderAddress,
         padding: RSA_PKCS1_PSS_PADDING,
       },
-      Buffer.from(this.signature)
+      this.signature,
     )
   }
   

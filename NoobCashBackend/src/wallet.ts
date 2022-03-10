@@ -1,13 +1,13 @@
-import { NoobCashTransaction, NoobCashWallet } from "./interfaces";
+import { NoobCashWallet } from "./interfaces";
 import { generateKeyPair } from "crypto";
 import { configuration } from "./configuration";
-import { NoobCashError } from "./utils";
 
 export class Wallet implements NoobCashWallet {
   public publicKey!: string;
   public privateKey!: string;
 
   constructor() {
+    if (!configuration.production) return;
     generateKeyPair(
       'rsa',
       {
@@ -26,7 +26,7 @@ export class Wallet implements NoobCashWallet {
       },
       (_, publicKey, privateKey) => {
         this.publicKey = publicKey;
-        this.privateKey = privateKey;                
+        this.privateKey = privateKey;
       }
     );
   }

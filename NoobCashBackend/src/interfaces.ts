@@ -28,7 +28,7 @@ export interface NoobCashTransaction {
   transactionId: string;
   transactionInputs: NoobCashTransactionInput[];
   transactionOutputs: NoobCashTransactionOutput[];
-  signature: string;
+  signature: Buffer;
   timestamp: number;
 }
 
@@ -67,8 +67,10 @@ export interface PostInfoDTO {
 }
 
 export interface PostTransactionDTO {
-  receiverAddress: string;
-  amount: NoobCashCoins;
+  data: {
+    receiverAddress: string;
+    amount: NoobCashCoins;
+  }
 }
 
 export interface MineResult {

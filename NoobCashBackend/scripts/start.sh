@@ -21,6 +21,7 @@ BOOTSTRAP_NODE_URL=$_BOOTSTRAP_NODE_URL \
 NODE_URL=$_BOOTSTRAP_NODE_URL \
 BLOCK_CAPACITY=$_BLOCK_CAPACITY \
 NODE_SECRET=$SECRET \
+PRODUCTION=$_PRODUCTION \
 node ./dist/src/app.js &
 
 for (( i=2; i<=$_TOTAL_NODES; i++ ))
@@ -36,5 +37,6 @@ do
     NODE_URL=http://${_NODE_ADDRESS}${i}:${_PORT}${i} \
     BLOCK_CAPACITY=$_BLOCK_CAPACITY \
     NODE_SECRET=$SECRET \
+    PRODUCTION=$_PRODUCTION \
     node ./dist/src/app.js &
 done

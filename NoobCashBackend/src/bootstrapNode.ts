@@ -12,14 +12,32 @@ export class BootstrapNode extends NoobCashNode {
   constructor() {
     super();
     this.nodeId = 0;
+    if (!configuration.production) {
+      this.wallet.publicKey = `-----BEGIN RSA PUBLIC KEY-----
+MEoCQwMAbu2vqE7dAgSUScs5B1Kj1nYOKt33NuxP4ieQrvOtyhPIwS+t4vtT9oyh
+Xiw5qwgFMM4RAV2hj0R7o7vUGzE/jT0CAwEBAQ==
+-----END RSA PUBLIC KEY-----`
+      this.wallet.privateKey = `-----BEGIN ENCRYPTED PRIVATE KEY-----
+MIIBzTBXBgkqhkiG9w0BBQ0wSjApBgkqhkiG9w0BBQwwHAQIGEKSgAFBAJ8CAggA
+MAwGCCqGSIb3DQIJBQAwHQYJYIZIAWUDBAEqBBDp3Ohm5BOvNIM/DUBzuxmiBIIB
+cCifUE02V1IFufDOHyHPZTD4riqL79/fxOqTc2ddpr7Wx2GPNGC7AlNgc7HUeod5
+iJl4giQD5i/NUTtmPpZNI/2YLZ2pX9FlXH+ng5aLnrqKPVYde0cAAg6croc5H0qr
+WIyQR0vfDR5hhgqTRvE27UetNVGkLW4HLrv9oTbXjtPZTtu5yegBkxXQCt3akmpj
+GmrNFS/m8EkRoWENGAieb1pRSgm5ghqZ5IpIEDGyYP7qand0kvdW+7mhrbfAJKte
+rmwycaz0e1tomzww5PicWhdX3TrbqgE6qF6k1qH+y29sNhFORykF6pqYrt3oYKdE
+BHTyrpSAjfYfHGCNpCp5Jx8i0XqKr8FprBChXZ63njfnbErshh93iKWlvcvGxqop
+HJ4miUvdZU7CQDbi4QReuuA3hv6OL09QJ2uyZcCyEuEwZyElsfLI9fgzmIyod2KG
+R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
+-----END ENCRYPTED PRIVATE KEY-----`
+    }
   }
 
   private async sendNodesInfoToAll() {
     const resultMap = await Promise.all(
-      this.nodesInfo.map( x => {
-        if (x.publicKey === this.wallet.publicKey) return;
+      this.nodesInfo.map( node => {
+        if (node.publicKey === this.wallet.publicKey) return;
         return axios.post<any, AxiosResponse<any, any>, PostInfoDTO>(
-          `${x.url}/info`,
+          `${node.url}/info/`,
           {
             chain: this.blockChain,
             utxos: this.UTXOs,
@@ -77,7 +95,7 @@ export class BootstrapNode extends NoobCashNode {
   public register(nodeInfo: NodeInfo): PostRegisterResponseDTO {
     const newNodeId = this.nodesInfo.length;
     if (newNodeId === configuration.totalNodes - 1) {
-      this.syncNodes();
+      setImmediate(() => this.syncNodes());
     }
     this.nodesInfo.push({
       url: nodeInfo.url,

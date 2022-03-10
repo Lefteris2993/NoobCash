@@ -11,4 +11,5 @@ export const configuration = {
   bootstrapNodeUrl: process.env.BOOTSTRAP_NODE_URL || 'http://localhost:3000',
   secret: process.env.NODE_SECRET || 'secret',
   blockCapacity: Number(process.env.BLOCK_CAPACITY || 4),
+  production: process.env.PRODUCTION === 'true',
 }

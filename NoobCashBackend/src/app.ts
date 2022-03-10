@@ -31,7 +31,7 @@ app.use((
   res: Response,
   next: NextFunction
 ) => {
-  console.log('\x1b[32m', `[Timestamp]: ${Date.now()} [URL]: ${req.url} [Method]: ${req.method}`, '\x1b[0m');
+  console.log('\x1b[32m', `[Timestamp]: ${(new Date).toISOString()} [URL]: ${req.url} [Method]: ${req.method}`, '\x1b[0m');
   return next();
 });
 
@@ -66,11 +66,10 @@ app.post('/block', (req: Request<any, any, PostBlockDTO>, res: Response) => {
 });
 
 // Receive new Transaction
-app.put('/transactions', (req: Request<any, any, PutTransactionDTO>, res: Response) => {
+app.put('/transactions', async (req: Request<any, any, PutTransactionDTO>, res: Response) => {
   const transaction = req.body.transaction;
-  console.log(transaction);
   try {
-    node.putTransaction(transaction);
+    await node.putTransaction(transaction);
     res.status(200).send('OK');
   } catch (e) {
     const error = e as NoobCashError;
@@ -116,11 +115,11 @@ app.get('/chain', (_: Request, res: Response<GetChainResponseDTO | string>) => {
 });
 
 // Create a new Transaction
-app.post('/transactions', (req: Request<any, any, PostTransactionDTO>, res: Response) => {
-  const amount = req.body.amount;
-  const receiverAddress = req.body.receiverAddress;
+app.post('/transactions', async (req: Request<any, any, PostTransactionDTO>, res: Response) => {
+  const amount = req.body.data.amount;
+  const receiverAddress = req.body.data.receiverAddress;
   try {
-    node.postTransaction(amount, receiverAddress);
+    await node.postTransaction(amount, receiverAddress);
     res.status(200).send('OK');
   } catch (e) {
     const error = e as NoobCashError;

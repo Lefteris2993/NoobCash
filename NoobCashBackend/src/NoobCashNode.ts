@@ -55,11 +55,19 @@ export abstract class NoobCashNode {
   public async putTransaction(t: NoobCashTransaction) {
     const transaction = Transaction.toTransaction(t);
     if (!transaction.verifySignature()) throw new NoobCashError('Invalid Transaction', 400);
-    const senderUtxos = this.UTXOs.find(x => x.owner === this.wallet.publicKey);
+    const senderUtxos = this.UTXOs.find(x => x.owner === transaction.senderAddress);
     if (!senderUtxos) {
       throw new NoobCashError('Bad request', 400);
     }
     transaction.validate(senderUtxos);
+    senderUtxos.utxo = senderUtxos.utxo.filter(x => 
+      transaction.transactionInputs.find( y => y.previousOutputId === x.outputId) === undefined
+    )
+    transaction.transactionOutputs.forEach(output => {
+      const receiver = this.UTXOs.find(x => x.owner === output.receiverAddress);
+      receiver?.utxo.push(output);
+    })
+    
     if (this.currentBlock.transactions.length >= configuration.blockCapacity) {
       await this.mineAndAddBlock();
     } 
@@ -85,14 +93,17 @@ export abstract class NoobCashNode {
   }
 
   public async postTransaction(amount: NoobCashCoins, receiverAddress: string): Promise<void> {
-    const newTransaction = new Transaction(this.wallet.publicKey, receiverAddress, amount);
+    const receiver = this.nodesInfo.find( node => node.publicKey === receiverAddress);
+    if (receiver === undefined) throw new NoobCashError('User not found', 400);
 
+    const newTransaction = new Transaction(this.wallet.publicKey, receiverAddress, amount);
+    
     const senderUtxos = this.UTXOs.find(x => x.owner === this.wallet.publicKey);
     if (!senderUtxos) {
       throw new NoobCashError('Bad request', 400);
     }
 
-    let result = newTransaction.validate(senderUtxos);
+    const result = newTransaction.validate(senderUtxos);
     
     senderUtxos.utxo = senderUtxos.utxo.filter(x => 
       result.usedOutputs.find( y => y.outputId === x.outputId) === undefined
@@ -100,21 +111,16 @@ export abstract class NoobCashNode {
   
     newTransaction.transactionInputs = result.newInputs;
     newTransaction.setTransactionId();
-    newTransaction.signTransaction(this.wallet.privateKey);
     newTransaction.calculateOutputs(result.coins);
+    newTransaction.signTransaction(this.wallet.privateKey);
 
-    try {
-      this.nodesInfo.forEach(node => {
-        axios.put(`${node.url}/transactions/`, {
-          transaction: newTransaction,
-        });
-      })
-    } catch (error) {
-      console.error(error);
-    }
+    await this.broadcast('put', 'transactions', { transaction: newTransaction });
+
+    const senderUtxo = newTransaction.transactionOutputs.find(x => x.receiverAddress === this.wallet.publicKey);
+    if (senderUtxo) senderUtxos.utxo.push(senderUtxo);
     this.currentBlock.transactions.push(newTransaction);
     if (this.currentBlock.transactions.length >= configuration.blockCapacity) {
-      await this.mineAndAddBlock();
+      setImmediate(() => this.mineAndAddBlock());
     }
   }
 
@@ -166,5 +172,20 @@ export abstract class NoobCashNode {
       if (!nextBlock.validateHash()) return false;
     }
     return true;
+  }
+
+  private broadcast(method: 'post' | 'get' | 'put', endpoint: string, data: any) {
+    return Promise.all(
+      this.nodesInfo.map( node => {
+        if (node.publicKey === this.wallet.publicKey) return;
+        return axios(
+          {
+            method: method,
+            url: `${node.url}/${endpoint}/`,
+            data: data,
+          }
+        );
+      })
+    )
   }
 }
