@@ -52,7 +52,7 @@ export abstract class NoobCashNode {
     return { chain: this.blockChain };
   }
 
-  public async putTransaction(t: NoobCashTransaction) {
+  public putTransaction(t: NoobCashTransaction) {
     const transaction = Transaction.toTransaction(t);
     if (!transaction.verifySignature()) throw new NoobCashError('Invalid Transaction', 400);
     const senderUtxos = this.UTXOs.find(x => x.owner === transaction.senderAddress);
@@ -67,9 +67,9 @@ export abstract class NoobCashNode {
       const receiver = this.UTXOs.find(x => x.owner === output.receiverAddress);
       receiver?.utxo.push(output);
     })
-    
+    this.currentBlock.transactions.push(transaction);
     if (this.currentBlock.transactions.length >= configuration.blockCapacity) {
-      await this.mineAndAddBlock();
+      setImmediate(() => this.mineAndAddBlock());
     } 
   }
   
@@ -92,7 +92,7 @@ export abstract class NoobCashNode {
     this.blockChain.push(block);
   }
 
-  public async postTransaction(amount: NoobCashCoins, receiverAddress: string): Promise<void> {
+  public postTransaction(amount: NoobCashCoins, receiverAddress: string): void {
     const receiver = this.nodesInfo.find( node => node.publicKey === receiverAddress);
     if (receiver === undefined) throw new NoobCashError('User not found', 400);
 
@@ -114,7 +114,7 @@ export abstract class NoobCashNode {
     newTransaction.calculateOutputs(result.coins);
     newTransaction.signTransaction(this.wallet.privateKey);
 
-    await this.broadcast('put', 'transactions', { transaction: newTransaction });
+    this.broadcast('put', 'transactions', { transaction: newTransaction });
 
     const senderUtxo = newTransaction.transactionOutputs.find(x => x.receiverAddress === this.wallet.publicKey);
     if (senderUtxo) senderUtxos.utxo.push(senderUtxo);
@@ -124,8 +124,8 @@ export abstract class NoobCashNode {
     }
   }
 
-  private async mineAndAddBlock() {
-    await this.currentBlock.mine();
+  private mineAndAddBlock() {
+    this.currentBlock.mine();
     if (!(this.currentBlock.validateHash() && this.blockChain[this.blockChain.length - 1].currentHash === this.currentBlock.previousHash)) {
       this.resolveConflict();
     }

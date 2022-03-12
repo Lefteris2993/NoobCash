@@ -31,7 +31,7 @@ app.use((
   res: Response,
   next: NextFunction
 ) => {
-  console.log('\x1b[32m', `[Timestamp]: ${(new Date).toISOString()} [URL]: ${req.url} [Method]: ${req.method}`, '\x1b[0m');
+  console.log('\x1b[32m', `[Timestamp]: ${(new Date).toISOString()} [URL]: ${req.url} [Method]: ${req.method} [IP]: ${req.ip}`, '\x1b[0m');
   return next();
 });
 
@@ -69,7 +69,7 @@ app.post('/block', (req: Request<any, any, PostBlockDTO>, res: Response) => {
 app.put('/transactions', async (req: Request<any, any, PutTransactionDTO>, res: Response) => {
   const transaction = req.body.transaction;
   try {
-    await node.putTransaction(transaction);
+    node.putTransaction(transaction);
     res.status(200).send('OK');
   } catch (e) {
     const error = e as NoobCashError;
@@ -119,7 +119,7 @@ app.post('/transactions', async (req: Request<any, any, PostTransactionDTO>, res
   const amount = req.body.data.amount;
   const receiverAddress = req.body.data.receiverAddress;
   try {
-    await node.postTransaction(amount, receiverAddress);
+    node.postTransaction(amount, receiverAddress);
     res.status(200).send('OK');
   } catch (e) {
     const error = e as NoobCashError;

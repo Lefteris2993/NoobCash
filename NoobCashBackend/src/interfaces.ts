@@ -73,11 +73,6 @@ export interface PostTransactionDTO {
   }
 }
 
-export interface MineResult {
-  nonce: number;
-  hash: string;
-}
-
 export interface PostRegisterDTO {
   nodeInfo: NodeInfo;
 }
