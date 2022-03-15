@@ -54,7 +54,7 @@ export abstract class NoobCashNode {
     if (!transaction.verifySignature()) throw new NoobCashError('Invalid Transaction', 400);
     this.notMinedTransactions.push(transaction);
     if (this.notMinedTransactions.length >= configuration.blockCapacity) {
-      setImmediate(() => this.mineAndAddBlock());
+      setTimeout(() => this.mineAndAddBlock());
     } 
   }
   
@@ -92,7 +92,7 @@ export abstract class NoobCashNode {
 
     this.notMinedTransactions.push(newTransaction)
     if (this.notMinedTransactions.length >= configuration.blockCapacity) {
-      setImmediate(() => this.mineAndAddBlock());
+      setTimeout(() => this.mineAndAddBlock());
     }
   }
 
@@ -139,7 +139,7 @@ export abstract class NoobCashNode {
       this.currentBlock = undefined;
     }
     if (this.notMinedTransactions.length >= configuration.blockCapacity) {
-      setImmediate(() => this.mineAndAddBlock());
+      setTimeout(() => this.mineAndAddBlock());
     }
   }
 

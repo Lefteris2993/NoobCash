@@ -88,7 +88,7 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
     if (!this.ready) throw new NoobCashError('Not ready. Try again', 503);
     const newNodeId = this.nodesInfo.length;
     if (newNodeId === configuration.totalNodes - 1) {
-      setImmediate(() => this.syncNodes());
+      setTimeout(() => this.syncNodes());
     }
     this.nodesInfo.push({
       url: nodeInfo.url,
