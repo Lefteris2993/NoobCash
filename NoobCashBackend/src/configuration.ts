@@ -12,4 +12,5 @@ export const configuration = {
   secret: process.env.NODE_SECRET || 'secret',
   blockCapacity: Number(process.env.BLOCK_CAPACITY || 4),
   production: process.env.PRODUCTION === 'true',
+  miningInterval: Number(process.env.MINING_INTERVAL || 5000),
 }

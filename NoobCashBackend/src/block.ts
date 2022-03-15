@@ -1,10 +1,9 @@
 import { configuration } from "./configuration";
 import { NoobCashBlock } from "./interfaces";
 import { Transaction } from "./transaction";
-import { hash } from "./utils";
+import { hash, Logger } from "./utils";
 
 const MY_MAX_INT = 8589934592;
-const MINING_INTERVAL = 5000;
 
 export class Block implements NoobCashBlock {
   public index!: number;
@@ -13,9 +12,15 @@ export class Block implements NoobCashBlock {
   public nonce!: number;
   public currentHash!: string;
   public previousHash!: string;
+  
+  private shouldStopMining = false;
 
   constructor() {
     this.timestamp = Date.now();
+  }
+
+  public abortMining() {
+    this.shouldStopMining = true;
   }
 
   public static toBlock(block: NoobCashBlock): Block {
@@ -32,7 +37,7 @@ export class Block implements NoobCashBlock {
   }
 
   public async mine() {
-    console.log('Starting mining...');
+    Logger.info('Starting mining...');
 
     let i = Math.floor(Math.random() * MY_MAX_INT);
     const startTime = Date.now();
@@ -49,18 +54,22 @@ export class Block implements NoobCashBlock {
         previousHash: this.previousHash,
       });
       if (currentHash.startsWith(zeros)) {
-        console.log((new Date).toISOString(), currentHash, i, Date.now() - startTime, i - startNum);
+        Logger.info(currentHash, i, Date.now() - startTime, i - startNum);
         break;
       }
       i = (i + 1) % MY_MAX_INT;
-      if (i - j > MINING_INTERVAL) {
+      if (i - j > configuration.miningInterval) {
         j = i;
         await new Promise(resolve => setTimeout(resolve));
+        if (this.shouldStopMining) {
+          Logger.warn('stopped mining');
+          return;
+        }
       }
     }
-
     this.nonce = i;
     this.currentHash = currentHash;
+    return true;
   }
 
   public validateHash(): boolean {

@@ -15,7 +15,7 @@ import {
   PostTransactionDTO, 
   PutTransactionDTO 
 } from './interfaces';
-import { NoobCashError } from './utils';
+import { Logger, NoobCashError } from './utils';
 import * as fs from 'fs';
 
 const app = express();
@@ -31,7 +31,7 @@ app.use((
   res: Response,
   next: NextFunction
 ) => {
-  console.log('\x1b[32m', `[Timestamp]: ${(new Date).toISOString()} [URL]: ${req.url} [Method]: ${req.method} [IP]: ${req.ip}`, '\x1b[0m');
+  Logger.info(`[URL]: ${req.url} [Method]: ${req.method}`)
   return next();
 });
 
@@ -116,8 +116,8 @@ app.get('/chain', (_: Request, res: Response<GetChainResponseDTO | string>) => {
 
 // Create a new Transaction
 app.post('/transactions', async (req: Request<any, any, PostTransactionDTO>, res: Response) => {
-  const amount = req.body.data.amount;
-  const receiverAddress = req.body.data.receiverAddress;
+  const amount = req.body.amount;
+  const receiverAddress = req.body.receiverAddress;
   try {
     node.postTransaction(amount, receiverAddress);
     res.status(200).send('OK');
@@ -150,5 +150,5 @@ app.get('/balance', (_: Request, res: Response<GetBalanceResponseDTO | string>) 
 });
 
 app.listen(port, () => {
-  console.log(`NoobCash backend running on port: ${port}`);
+  Logger.info(`NoobCash backend running on port: ${port}`);
 });

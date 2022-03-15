@@ -14,7 +14,7 @@ import {
   UTXO 
 } from "./interfaces";
 import { Transaction } from './transaction';
-import { NoobCashError } from './utils';
+import { Logger, NoobCashError } from './utils';
 import { Wallet } from "./wallet";
 
 export abstract class NoobCashNode {
@@ -23,11 +23,11 @@ export abstract class NoobCashNode {
   protected UTXOs: UTXO[] = [];
   protected blockChain: NoobCashBlockChain = [];
   protected nodesInfo: NodeInfo[] = [];
-  protected currentBlock!: Block;
+  protected notMinedTransactions: Transaction[] = [];
+  protected currentBlock!: Block | undefined;
 
   constructor() {
     this.wallet = new Wallet();
-    this.currentBlock = new Block();
   }
 
   public abstract ignite (): Promise<void>;
@@ -67,29 +67,37 @@ export abstract class NoobCashNode {
       const receiver = this.UTXOs.find(x => x.owner === output.receiverAddress);
       receiver?.utxo.push(output);
     })
-    this.currentBlock.transactions.push(transaction);
-    if (this.currentBlock.transactions.length >= configuration.blockCapacity) {
+    this.notMinedTransactions.push(transaction);
+    if (this.notMinedTransactions.length >= configuration.blockCapacity) {
       setImmediate(() => this.mineAndAddBlock());
     } 
   }
   
   public postBlock(b: NoobCashBlock) {
     const block = Block.toBlock(b);
-    if (!(block.validateHash() && this.blockChain[this.blockChain.length - 1].currentHash === block.previousHash)) {
+    if(!block.validateHash()) {
+      throw new NoobCashError('Invalid block', 400);
+    }
+    if (block.previousHash !== this.blockChain[this.blockChain.length - 1].currentHash) {
       this.resolveConflict();
     }
-    let valid = true;
-    const shouldRemoveIndexes: number[] = [];
-    block.transactions.forEach(x => {
-      const transactionIndex = this.currentBlock.transactions.findIndex(y => y.transactionId === x.transactionId);
-      if (transactionIndex > 0) {
-        shouldRemoveIndexes.push(transactionIndex);
-      } else {
-        valid = x.verifySignature();
-      }
-    });
-    if (!valid) throw new NoobCashError('Invalid block', 400);
+    const shouldRemoveTransactions = block.transactions;
+    const newNotMinedTransactions = this.notMinedTransactions.filter(
+      x => shouldRemoveTransactions.find(y => y.transactionId === x.transactionId) === undefined
+    )
+    if (this.notMinedTransactions.length - newNotMinedTransactions.length !==  configuration.blockCapacity) {
+      throw new NoobCashError('Invalid block', 400);
+    }
+    if (this.currentBlock !== undefined) {
+      this.currentBlock.transactions.forEach( t => {
+        if (shouldRemoveTransactions.find( x => x.transactionId === t.transactionId) !== undefined) {
+          this.currentBlock?.abortMining();
+          this.currentBlock = undefined;
+        }
+      })
+    }
     this.blockChain.push(block);
+    this.notMinedTransactions = newNotMinedTransactions;
   }
 
   public postTransaction(amount: NoobCashCoins, receiverAddress: string): void {
@@ -118,31 +126,26 @@ export abstract class NoobCashNode {
 
     const senderUtxo = newTransaction.transactionOutputs.find(x => x.receiverAddress === this.wallet.publicKey);
     if (senderUtxo) senderUtxos.utxo.push(senderUtxo);
-    this.currentBlock.transactions.push(newTransaction);
-    if (this.currentBlock.transactions.length >= configuration.blockCapacity) {
+    this.notMinedTransactions.push(newTransaction)
+    if (this.notMinedTransactions.length >= configuration.blockCapacity) {
       setImmediate(() => this.mineAndAddBlock());
     }
   }
 
-  private mineAndAddBlock() {
-    this.currentBlock.mine();
-    if (!(this.currentBlock.validateHash() && this.blockChain[this.blockChain.length - 1].currentHash === this.currentBlock.previousHash)) {
-      this.resolveConflict();
-    }
-    this.blockChain.push(this.currentBlock);
-    try {
-      this.nodesInfo.forEach(node => {
-        axios.post(`${node.url}/block`, {
-          block: this.currentBlock,
-        });
-      })
-    } catch (error) {
-      console.error(error);
-    }
+  private async mineAndAddBlock() {
+    if (this.notMinedTransactions.length < configuration.blockCapacity) return;
     const newBlock = new Block();
     newBlock.index = this.blockChain[this.blockChain.length - 1].index + 1;
     newBlock.previousHash = this.blockChain[this.blockChain.length - 1].currentHash;
+    for (let i = 0; i < configuration.blockCapacity; i++) {
+      newBlock.transactions.push(this.notMinedTransactions[i]);
+    }
     this.currentBlock = newBlock;
+    const completed = await this.currentBlock.mine();
+    if (!completed) return;
+    this.blockChain.push(this.currentBlock);
+    this.broadcast('post', 'block', { block: this.currentBlock });
+    this.currentBlock = undefined;
   }
 
   private resolveConflict() {
@@ -152,6 +155,7 @@ export abstract class NoobCashNode {
       try {
         response = await axios.get<{ chain: NoobCashBlockChain }>(`${node.url}/chain`);
       } catch (error) {
+        Logger.warn(`Could not get chain from node ${node.url}`);
         console.error(error);
         return;
       }
@@ -164,7 +168,7 @@ export abstract class NoobCashNode {
   }
 
   private validateChain(chain: NoobCashBlockChain): boolean {
-    if (JSON.stringify(chain[0]) !== JSON.stringify(this.blockChain)) return false;
+    if (JSON.stringify(chain[0]) !== JSON.stringify(this.blockChain[0])) return false;
     for (let i = 0; i < chain.length - 1; ++i) {
       const prevBlock = chain[i];
       const nextBlock = chain[i+1];
@@ -174,18 +178,22 @@ export abstract class NoobCashNode {
     return true;
   }
 
-  private broadcast(method: 'post' | 'get' | 'put', endpoint: string, data: any) {
-    return Promise.all(
-      this.nodesInfo.map( node => {
-        if (node.publicKey === this.wallet.publicKey) return;
-        return axios(
-          {
-            method: method,
-            url: `${node.url}/${endpoint}/`,
-            data: data,
-          }
-        );
-      })
-    )
+  protected async broadcast(method: 'post' | 'get' | 'put', endpoint: string, data: any) {
+    try {
+      await Promise.all(
+        this.nodesInfo.map( node => {
+          if (node.publicKey === this.wallet.publicKey) return;
+          return axios(
+            {
+              method: method,
+              url: `${node.url}/${endpoint}/`,
+              data: data,
+            }
+          );
+        })
+      )
+    } catch (_error) {
+      // Do nothing
+    }
   }
 }

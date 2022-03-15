@@ -4,10 +4,10 @@ import { NoobCashNode } from "./NoobCashNode";
 import { Transaction } from "./transaction";
 import { TransactionOutput } from "./transactionOutput";
 import { hash, NoobCashError } from "./utils";
-import { NodeInfo, NoobCashBlockChain, PostInfoDTO, PostRegisterResponseDTO, UTXO } from "./interfaces";
-import axios, { AxiosResponse } from "axios";
+import { NodeInfo, NoobCashBlockChain, PostRegisterResponseDTO, UTXO } from "./interfaces";
 
 export class BootstrapNode extends NoobCashNode {
+  private ready = false;
 
   constructor() {
     super();
@@ -32,22 +32,6 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
     }
   }
 
-  private async sendNodesInfoToAll() {
-    const resultMap = await Promise.all(
-      this.nodesInfo.map( node => {
-        if (node.publicKey === this.wallet.publicKey) return;
-        return axios.post<any, AxiosResponse<any, any>, PostInfoDTO>(
-          `${node.url}/info/`,
-          {
-            chain: this.blockChain,
-            utxos: this.UTXOs,
-            nodesInfo: this.nodesInfo,
-          }
-        );
-      })
-    );
-  }
-
   private async sendInitialCoinsToAllNodes() {
     const resultMap = await Promise.all(
       this.nodesInfo.map( node => {
@@ -58,7 +42,11 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
   }
 
   private async syncNodes() {
-    await this.sendNodesInfoToAll();
+    await this.broadcast('post', 'info', {
+      chain: this.blockChain,
+      utxos: this.UTXOs,
+      nodesInfo: this.nodesInfo,
+    });
     await this.sendInitialCoinsToAllNodes();
   }
   
@@ -90,9 +78,11 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
       utxo: [genesisUTXO],
     });
     this.blockChain.push(genesisBlock);
+    this.ready = true;
   }
 
   public register(nodeInfo: NodeInfo): PostRegisterResponseDTO {
+    if (!this.ready) throw new NoobCashError('Not ready. Try again', 503);
     const newNodeId = this.nodesInfo.length;
     if (newNodeId === configuration.totalNodes - 1) {
       setImmediate(() => this.syncNodes());
