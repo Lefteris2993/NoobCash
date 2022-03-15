@@ -1,5 +1,5 @@
 import { configuration } from "./configuration";
-import { NoobCashBlock } from "./interfaces";
+import { NoobCashBlock, UTXO } from "./interfaces";
 import { Transaction } from "./transaction";
 import { hash, Logger } from "./utils";
 
@@ -12,6 +12,7 @@ export class Block implements NoobCashBlock {
   public nonce!: number;
   public currentHash!: string;
   public previousHash!: string;
+  public utxos: UTXO[] = [];
   
   private shouldStopMining = false;
 
@@ -33,6 +34,7 @@ export class Block implements NoobCashBlock {
     newBlock.nonce = block.nonce;
     newBlock.currentHash = block.currentHash;
     newBlock.previousHash = block.previousHash;
+    newBlock.utxos = block.utxos;
     return newBlock;
   }
 
@@ -82,5 +84,31 @@ export class Block implements NoobCashBlock {
     });
     const zeros = '0'.repeat(configuration.difficulty);
     return currentHash.slice(0, configuration.difficulty) === zeros && currentHash === this.currentHash;
+  }
+
+  public validate(prevBlock: Block): boolean {
+    const newUtxos = JSON.parse(JSON.stringify(prevBlock.utxos)) as UTXO[];
+    this.transactions.forEach( t => {
+      if (!t.verifySignature()) return false;
+      const senderUtxos = newUtxos.find(x => x.owner === t?.senderAddress);
+      if (!senderUtxos) return false;
+      const res = t.validate(senderUtxos);
+      senderUtxos.utxos = senderUtxos.utxos.filter(x => 
+        res.usedOutputs.find( y => y.outputId === x.outputId) === undefined
+      );
+      t.transactionOutputs.forEach(output => {
+        const receiver = newUtxos.find(x => x.owner === output.receiverAddress);
+        if (!receiver) return false;
+        receiver.utxos.push(output);
+      });
+    });
+    this.utxos.forEach(x => {
+      const newUtxo = newUtxos.find(y => y.owner === x.owner);
+      if (!newUtxo) return false;
+      const actual = x.utxos.reduce((prev, curr) => prev + curr.amount, 0);
+      const expected = newUtxo.utxos.reduce((prev, curr) => prev + curr.amount, 0);
+      if (actual !== expected) return false;
+    })
+    return true;
   }
 }

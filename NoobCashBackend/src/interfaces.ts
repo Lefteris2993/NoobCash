@@ -1,5 +1,4 @@
 import { Block } from "./block";
-import { Transaction } from "./transaction";
 import { TransactionInput } from "./transactionInput";
 import { TransactionOutput } from "./transactionOutput";
 
@@ -12,6 +11,7 @@ export interface NoobCashBlock {
   nonce: number;
   currentHash: string;
   previousHash: string;
+  utxos: UTXO[];
 }
 
 export type NoobCashBlockChain = Block[];
@@ -57,12 +57,11 @@ export interface NodeInfo {
 
 export interface UTXO {
   owner: string;
-  utxo: TransactionOutput[];
+  utxos: TransactionOutput[];
 }
 
 export interface PostInfoDTO {
   chain: NoobCashBlockChain,
-  utxos: UTXO[],
   nodesInfo: NodeInfo[],
 }
 

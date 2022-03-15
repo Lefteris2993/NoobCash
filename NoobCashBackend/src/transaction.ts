@@ -1,7 +1,14 @@
 import { RSA_PKCS1_PSS_PADDING } from "constants";
 import { sign, verify } from "crypto";
 import { configuration } from "./configuration";
-import { NoobCashCoins, NoobCashTransaction, NoobCashTransactionInput, NoobCashTransactionOutput, UTXO, ValidateResult } from "./interfaces";
+import { 
+  NoobCashCoins, 
+  NoobCashTransaction, 
+  NoobCashTransactionInput, 
+  NoobCashTransactionOutput, 
+  UTXO, 
+  ValidateResult 
+} from "./interfaces";
 import { TransactionInput } from "./transactionInput";
 import { TransactionOutput } from "./transactionOutput";
 import { hash, NoobCashError } from "./utils";
@@ -55,7 +62,6 @@ export class Transaction implements NoobCashTransaction {
       senderAddress: this.senderAddress,
       receiverAddress: this.receiverAddress,
       amount: this.amount,
-      transactionInputs: this.transactionInputs,
       timestamp: this.timestamp,
     });
     return this.transactionId;
@@ -67,8 +73,6 @@ export class Transaction implements NoobCashTransaction {
       senderAddress: this.senderAddress,
       receiverAddress: this.receiverAddress,
       amount: this.amount,
-      transactionInputs: this.transactionInputs,
-      transactionOutputs: this.transactionOutputs,
     });
   }
 
@@ -98,7 +102,7 @@ export class Transaction implements NoobCashTransaction {
   public validate(senderUtxos: UTXO): ValidateResult {
     let coins = 0;
     const spentOutputs: TransactionOutput[] = [];
-    senderUtxos.utxo.forEach(utxo => {
+    senderUtxos.utxos.forEach(utxo => {
       if (coins >= this.amount) return;
       coins += utxo.amount;
       spentOutputs.push(utxo);
@@ -133,7 +137,6 @@ export class Transaction implements NoobCashTransaction {
         this.amount,
       ))
     }
-    this.transactionOutputs = newOutputs;
     return newOutputs;
   }
 }

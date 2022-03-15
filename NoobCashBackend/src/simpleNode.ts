@@ -29,6 +29,7 @@ IkY2MMH7ICoWqZmh69dOasUDMk8fD+J7fCSMl6I5z4qW
   }
 
   public async ignite (): Promise<void> {
+    if (this.ignited) throw new NoobCashError('Already ignited', 400);
     while (true) {
       try {
         const data: PostRegisterDTO = {
@@ -44,15 +45,15 @@ IkY2MMH7ICoWqZmh69dOasUDMk8fD+J7fCSMl6I5z4qW
         // Do nothing
       }
     }
+    this.ignited = true;
   }
 
   public register(_: NodeInfo): PostRegisterResponseDTO {
     throw new NoobCashError('I am a teapot', 418);
   }
 
-  public info(nodeInfo: NodeInfo[], utxos: UTXO[], chain: NoobCashBlockChain) {
+  public info(nodeInfo: NodeInfo[], chain: NoobCashBlockChain) {
     this.nodesInfo = nodeInfo;
-    this.UTXOs = utxos;
     this.blockChain = chain;
   }
 }

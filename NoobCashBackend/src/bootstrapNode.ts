@@ -44,13 +44,14 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
   private async syncNodes() {
     await this.broadcast('post', 'info', {
       chain: this.blockChain,
-      utxos: this.UTXOs,
       nodesInfo: this.nodesInfo,
     });
+    this.currentBlock = undefined;
     await this.sendInitialCoinsToAllNodes();
   }
   
   public async ignite (): Promise<void>  {
+    if (this.ignited) throw new NoobCashError('Already ignited', 400);
     this.nodesInfo.push({ 
       url: configuration.url, 
       publicKey: this.wallet.publicKey,
@@ -73,12 +74,14 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
     genesisBlock.previousHash = '1';
     genesisBlock.nonce = 0;
     genesisBlock.currentHash = hash([genesisTransaction]);
-    this.UTXOs.push({
+    genesisBlock.utxos.push({
       owner: this.wallet.publicKey,
-      utxo: [genesisUTXO],
+      utxos: [genesisUTXO],
     });
     this.blockChain.push(genesisBlock);
+    this.currentBlock = genesisBlock;
     this.ready = true;
+    this.ignited = true;
   }
 
   public register(nodeInfo: NodeInfo): PostRegisterResponseDTO {
@@ -91,11 +94,11 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
       url: nodeInfo.url,
       publicKey: nodeInfo.publicKey,
     });
-    this.UTXOs.push({ owner: nodeInfo.publicKey, utxo: [] });
+    this.currentBlock?.utxos.push({ owner: nodeInfo.publicKey, utxos: [] });
     return { nodeId: newNodeId };
   }
 
-  public info(_info: NodeInfo[], _utxos: UTXO[], _chain: NoobCashBlockChain) {
+  public info(_info: NodeInfo[], _chain: NoobCashBlockChain) {
     throw new NoobCashError('I am a teapot', 418);
   }
 }
