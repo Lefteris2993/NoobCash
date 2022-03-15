@@ -150,8 +150,7 @@ export abstract class NoobCashNode {
       try {
         response = await axios.get<{ chain: NoobCashBlockChain }>(`${node.url}/chain`);
       } catch (error) {
-        Logger.warn(`Could not get chain from node ${node.url}`);
-        console.error(error);
+        Logger.error(`Could not get chain from node ${node.url}`);
         return;
       }
       const nodeChain = response.data.chain;
@@ -174,6 +173,7 @@ export abstract class NoobCashNode {
   }
 
   protected async broadcast(method: 'post' | 'get' | 'put', endpoint: string, data: any) {
+    Logger.warn(`[Broadcast]: ${method} /${endpoint}`);
     try {
       await Promise.all(
         this.nodesInfo.map( node => {

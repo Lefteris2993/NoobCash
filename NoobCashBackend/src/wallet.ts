@@ -1,6 +1,7 @@
 import { NoobCashWallet } from "./interfaces";
 import { generateKeyPair } from "crypto";
 import { configuration } from "./configuration";
+import { Logger } from "./utils";
 
 export class Wallet implements NoobCashWallet {
   public publicKey!: string;
@@ -25,6 +26,7 @@ export class Wallet implements NoobCashWallet {
         }
       },
       (_, publicKey, privateKey) => {
+        Logger.warn('Wallet rsa key pair created');
         this.publicKey = publicKey;
         this.privateKey = privateKey;
       }

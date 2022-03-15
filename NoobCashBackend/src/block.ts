@@ -39,7 +39,7 @@ export class Block implements NoobCashBlock {
   }
 
   public async mine() {
-    Logger.info('Starting mining...');
+    Logger.warn('Mining started');
 
     let i = Math.floor(Math.random() * MY_MAX_INT);
     const startTime = Date.now();
@@ -56,7 +56,7 @@ export class Block implements NoobCashBlock {
         previousHash: this.previousHash,
       });
       if (currentHash.startsWith(zeros)) {
-        Logger.info(currentHash, i, Date.now() - startTime, i - startNum);
+        Logger.info(`Fount nonce in ${Date.now() - startTime}ms`);
         break;
       }
       i = (i + 1) % MY_MAX_INT;
@@ -64,7 +64,7 @@ export class Block implements NoobCashBlock {
         j = i;
         await new Promise(resolve => setTimeout(resolve));
         if (this.shouldStopMining) {
-          Logger.warn('stopped mining');
+          Logger.warn('Mining aborted');
           return;
         }
       }
