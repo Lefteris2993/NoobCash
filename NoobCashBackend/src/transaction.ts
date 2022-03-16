@@ -11,7 +11,7 @@ import {
 } from "./interfaces";
 import { TransactionInput } from "./transactionInput";
 import { TransactionOutput } from "./transactionOutput";
-import { hash, NoobCashError } from "./utils";
+import { hash, Logger } from "./utils";
 
 export class Transaction implements NoobCashTransaction {
   public senderAddress!: string;
@@ -99,7 +99,7 @@ export class Transaction implements NoobCashTransaction {
     )
   }
   
-  public validate(senderUtxos: UTXO): ValidateResult {
+  public validate(senderUtxos: UTXO): ValidateResult | undefined {
     let coins = 0;
     const spentOutputs: TransactionOutput[] = [];
     senderUtxos.utxos.forEach(utxo => {
@@ -107,8 +107,10 @@ export class Transaction implements NoobCashTransaction {
       coins += utxo.amount;
       spentOutputs.push(utxo);
     })
-    if (coins < this.amount)
-      throw new NoobCashError('Not enough NoobCash Coins', 400);
+    if (coins < this.amount) {
+      Logger.error(`Transaction: ${this.transactionId} Not enough coins`);
+      return undefined;
+    } 
 
     const newInputs = spentOutputs.map( output => {
       return new TransactionInput(output.outputId, output.amount);

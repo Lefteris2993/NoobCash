@@ -14,14 +14,19 @@ export class Block implements NoobCashBlock {
   public previousHash!: string;
   public utxos: UTXO[] = [];
   
+  private mining = false;
   private shouldStopMining = false;
 
   constructor() {
     this.timestamp = Date.now();
   }
 
-  public abortMining() {
+  public abortMining(): void {
     this.shouldStopMining = true;
+  }
+
+  public isMining(): boolean {
+    return this.mining;
   }
 
   public static toBlock(block: NoobCashBlock): Block {
@@ -40,6 +45,7 @@ export class Block implements NoobCashBlock {
 
   public async mine() {
     Logger.warn('Mining started');
+    this.mining = true;
 
     let i = Math.floor(Math.random() * MY_MAX_INT);
     const startTime = Date.now();
@@ -65,7 +71,7 @@ export class Block implements NoobCashBlock {
         await new Promise(resolve => setTimeout(resolve));
         if (this.shouldStopMining) {
           Logger.warn('Mining aborted');
-          return;
+          return false;
         }
       }
     }
@@ -93,6 +99,7 @@ export class Block implements NoobCashBlock {
       const senderUtxos = newUtxos.find(x => x.owner === t?.senderAddress);
       if (!senderUtxos) return false;
       const res = t.validate(senderUtxos);
+      if (!res) return false;
       senderUtxos.utxos = senderUtxos.utxos.filter(x => 
         res.usedOutputs.find( y => y.outputId === x.outputId) === undefined
       );

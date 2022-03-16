@@ -44,13 +44,13 @@ else
 
 // An endpoint to see that the node is up and running
 app.get('/healthcheck', (_, res) => {
-  res.status(200).send('Up and running!')
+  res.status(200).send('Up and running!\n')
 });
 
 // Initialize node, join network
 app.post('/ignite', async (_: Request, res: Response) => {
   await node.ignite();
-  res.status(200).send('OK');
+  res.status(200).send('OK\n');
 });
 
 // Receive new block
@@ -58,7 +58,7 @@ app.post('/block', (req: Request<any, any, PostBlockDTO>, res: Response) => {
   const block = req.body.block;
   try {
     node.postBlock(block);
-    res.status(200).send('OK');
+    res.status(200).send('OK\n');
   } catch (e) {
     const error = e as NoobCashError;
     res.status(error.status).send(error.message);
@@ -70,7 +70,7 @@ app.put('/transactions', async (req: Request<any, any, PutTransactionDTO>, res: 
   const transaction = req.body.transaction;
   try {
     node.putTransaction(transaction);
-    res.status(200).send('OK');
+    res.status(200).send('OK\n');
   } catch (e) {
     const error = e as NoobCashError;
     res.status(error.status).send(error.message);
@@ -83,7 +83,7 @@ app.post('/info', (req: Request<any, any, PostInfoDTO>, res: Response) => {
   const chain = req.body.chain;
   try {
     node.info(nodeInfo, chain);
-    res.status(200).send('OK');
+    res.status(200).send('OK\n');
   } catch (e) {
     const error = e as NoobCashError;
     res.status(error.status).send(error.message);
@@ -117,9 +117,10 @@ app.get('/chain', (_: Request, res: Response<GetChainResponseDTO | string>) => {
 app.post('/transactions', async (req: Request<any, any, PostTransactionDTO>, res: Response) => {
   const amount = req.body.amount;
   const receiverAddress = req.body.receiverAddress;
+  const receiverId = req.body.receiverId;
   try {
-    node.postTransaction(amount, receiverAddress);
-    res.status(200).send('OK');
+    node.postTransaction(amount, receiverAddress, receiverId);
+    res.status(200).send('OK\n');
   } catch (e) {
     const error = e as NoobCashError;
     res.status(error.status).send(error.message);

@@ -66,8 +66,9 @@ export interface PostInfoDTO {
 }
 
 export interface PostTransactionDTO {
-  receiverAddress: string;
+  receiverAddress?: string;
   amount: NoobCashCoins;
+  receiverId?: number;
 }
 
 export interface PostRegisterDTO {

@@ -61,30 +61,40 @@ export abstract class NoobCashNode {
   public postBlock(b: NoobCashBlock) {
     const block = Block.toBlock(b);
     if (block.previousHash !== this.blockChain[this.blockChain.length - 1].currentHash) {
-      this.resolveConflict();
-    }
-    if(!block.validateHash() || !block.validate(this.blockChain[this.blockChain.length - 1])) {
+      const result = this.resolveConflict();
+      if (!result) return;
+      this.notMinedTransactions = this.notMinedTransactions.filter(x =>
+        result.mined.find(y =>  x.transactionId === y.transactionId) === undefined 
+      );
+      result.retry = result.retry.filter(x =>
+        this.notMinedTransactions.find(y => x.transactionId === y.transactionId) === undefined 
+      );
+      this.notMinedTransactions.unshift(...result.retry);
+      if(!this.currentBlock) return;
+      this.currentBlock.abortMining();
+    } else if(!block.validateHash() || !block.validate(this.blockChain[this.blockChain.length - 1])) {
       throw new NoobCashError('Invalid block', 400);
+    } else if (block) {
+      this.blockChain.push(block);
+      if (!this.currentBlock) return;
+      this.currentBlock.abortMining();
+      this.currentBlock.transactions = this.currentBlock.transactions.filter( x => 
+        block.transactions.find(y => x.transactionId === y.transactionId) === undefined
+      );
+      this.notMinedTransactions = this.notMinedTransactions.filter(x =>
+        block.transactions.find(y => x.transactionId === y.transactionId) === undefined
+      )
+      this.notMinedTransactions.unshift(...this.currentBlock.transactions);
     }
-    if (this.currentBlock !== undefined) {
-      for (let i = 0; i < this.currentBlock.transactions.length; i++) {
-        const found = block.transactions.find( x => x.transactionId === this.currentBlock?.transactions[i].transactionId);
-        if (!found) continue;
-        this.currentBlock.abortMining();
-        this.currentBlock.transactions = this.currentBlock.transactions.filter( t => 
-          block.transactions.find(x => x.transactionId === t.transactionId) === undefined
-        );
-        break;
-      }
-    }
-    this.blockChain.push(block);
   }
 
-  public postTransaction(amount: NoobCashCoins, receiverAddress: string): void {
-    const receiver = this.nodesInfo.find( node => node.publicKey === receiverAddress);
+  public postTransaction(amount: NoobCashCoins, receiverAddress?: string, receiverId?: number): void {
+    let receiver: NodeInfo | undefined = undefined;
+    if (receiverAddress) receiver = this.nodesInfo.find( node => node.publicKey === receiverAddress);
+    else if (receiverId) receiver = this.nodesInfo[receiverId];
     if (receiver === undefined) throw new NoobCashError('User not found', 400);
 
-    const newTransaction = new Transaction(this.wallet.publicKey, receiverAddress, amount);
+    const newTransaction = new Transaction(this.wallet.publicKey, receiver.publicKey, amount);
     newTransaction.setTransactionId();
     newTransaction.signTransaction(this.wallet.privateKey);
 
@@ -97,6 +107,7 @@ export abstract class NoobCashNode {
   }
 
   private async mineAndAddBlock() {
+    if (this.currentBlock?.isMining()) return;
     const newBlock = new Block();
     const prevBlock = this.blockChain[this.blockChain.length - 1];
     newBlock.index = prevBlock.index + 1;
@@ -114,6 +125,7 @@ export abstract class NoobCashNode {
       const senderUtxos = newUtxos.find(x => x.owner === transaction?.senderAddress);
       if (!senderUtxos) continue;
       const res = transaction.validate(senderUtxos);
+      if (!res) continue;
       senderUtxos.utxos = senderUtxos.utxos.filter(x => 
         res.usedOutputs.find( y => y.outputId === x.outputId) === undefined
       );
@@ -130,14 +142,11 @@ export abstract class NoobCashNode {
     newBlock.utxos = newUtxos;
     this.currentBlock = newBlock;
     const completed = await this.currentBlock.mine();
-    if (completed) {
+    if (completed && this.currentBlock) {
       this.blockChain.push(this.currentBlock);
-      this.broadcast('post', 'block', { block: this.currentBlock });
-      this.currentBlock = undefined;
-    } else {
-      this.currentBlock.transactions.forEach(x => this.notMinedTransactions.unshift(x));
-      this.currentBlock = undefined;
+      await this.broadcast('post', 'block', { block: this.currentBlock });
     }
+    this.currentBlock = undefined;
     if (this.notMinedTransactions.length >= configuration.blockCapacity) {
       setTimeout(() => this.mineAndAddBlock());
     }
@@ -145,7 +154,9 @@ export abstract class NoobCashNode {
 
   private resolveConflict() {
     let maxChain = this.blockChain;
+    let changed = false;
     this.nodesInfo.forEach(async node => {
+      if (node.publicKey === this.wallet.publicKey) return;
       let response: AxiosResponse<{ chain: NoobCashBlockChain }, any>;
       try {
         response = await axios.get<{ chain: NoobCashBlockChain }>(`${node.url}/chain`);
@@ -157,17 +168,41 @@ export abstract class NoobCashNode {
       if (nodeChain.length <= maxChain.length) return;
       if (!this.validateChain(nodeChain)) return;
       maxChain = nodeChain;
+      changed = true;
     });
+    let ret: { mined: Transaction[]; retry: Transaction[] } | undefined = undefined;
+    if (changed) {
+      let i = 0;
+      while (this.blockChain[i].currentHash === maxChain[i].currentHash) {
+        i++;
+      }
+      let minedTransactions: Transaction[] = [];
+      for (let j = i; j < maxChain.length; j++) {
+        minedTransactions.push(...maxChain[j].transactions);
+      } 
+      let shouldRedoTransactions: Transaction[] = [];
+      for (let j = i; j < this.blockChain.length; j++) {
+        shouldRedoTransactions.push(...this.blockChain[j].transactions);        
+      }
+      shouldRedoTransactions = shouldRedoTransactions.filter(x =>
+        minedTransactions.find(y => y.transactionId === x.transactionId) === undefined
+      );
+      ret = { mined: minedTransactions, retry: shouldRedoTransactions };
+    }
     this.blockChain = maxChain;
+    return ret;
   }
 
   private validateChain(chain: NoobCashBlockChain): boolean {
     if (JSON.stringify(chain[0]) !== JSON.stringify(this.blockChain[0])) return false;
     for (let i = 0; i < chain.length - 1; ++i) {
-      const prevBlock = chain[i];
-      const nextBlock = chain[i+1];
+      const prevBlock = Block.toBlock(chain[i]);
+      const nextBlock = Block.toBlock(chain[i+1]);
       if (prevBlock.currentHash !== nextBlock.previousHash) return false;
-      if (!Block.toBlock(nextBlock).validateHash()) return false;
+      if (!nextBlock.validateHash()) return false;
+      if (!nextBlock.validate(prevBlock)) return false;
+      chain[i] = prevBlock;
+      chain[i+1] = nextBlock;
     }
     return true;
   }

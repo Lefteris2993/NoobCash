@@ -62,6 +62,7 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
       configuration.totalNodes * 100,
     );
     genesisTransaction.setTransactionId();
+    genesisTransaction.signTransaction(this.wallet.privateKey);
     const genesisUTXO = new TransactionOutput(
       genesisTransaction.transactionId,
       genesisTransaction.receiverAddress,
