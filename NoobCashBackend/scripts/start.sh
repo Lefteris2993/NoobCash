@@ -26,7 +26,7 @@ node ./dist/src/app.js > .log1 &
 
 for (( i=2; i<=$_TOTAL_NODES; i++ ))
 do  
-    npx tsc
+    # npx tsc
     SECRET=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 13 ; echo '')
 
     IS_BOOTSTRAP=false \

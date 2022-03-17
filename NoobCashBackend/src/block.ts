@@ -62,7 +62,14 @@ export class Block implements NoobCashBlock {
         previousHash: this.previousHash,
       });
       if (currentHash.startsWith(zeros)) {
-        Logger.info(`Fount nonce in ${Date.now() - startTime}ms`);
+        Logger.info(`Fount nonce: ${currentHash} in ${Date.now() - startTime}ms`);
+        console.log(JSON.stringify({
+          index: this.index,
+          timestamp: this.timestamp,
+          transactions: this.transactions,
+          nonce: i,
+          previousHash: this.previousHash,
+        }))
         break;
       }
       i = (i + 1) % MY_MAX_INT;
@@ -89,10 +96,26 @@ export class Block implements NoobCashBlock {
       previousHash: this.previousHash,
     });
     const zeros = '0'.repeat(configuration.difficulty);
+    if (!(currentHash.slice(0, configuration.difficulty) === zeros && currentHash === this.currentHash)) {
+      console.log(JSON.stringify({
+        index: this.index,
+        timestamp: this.timestamp,
+        transactions: this.transactions,
+        nonce: this.nonce,
+        previousHash: this.previousHash,
+      }))
+    }
     return currentHash.slice(0, configuration.difficulty) === zeros && currentHash === this.currentHash;
   }
 
   public validate(prevBlock: Block): boolean {
+    const t1 = JSON.stringify({
+      index: this.index,
+      timestamp: this.timestamp,
+      transactions: this.transactions,
+      nonce: this.nonce,
+      previousHash: this.previousHash,
+    })
     const newUtxos = JSON.parse(JSON.stringify(prevBlock.utxos)) as UTXO[];
     this.transactions.forEach( t => {
       if (!t.verifySignature()) return false;
@@ -116,6 +139,17 @@ export class Block implements NoobCashBlock {
       const expected = newUtxo.utxos.reduce((prev, curr) => prev + curr.amount, 0);
       if (actual !== expected) return false;
     })
+    const t2 = JSON.stringify({
+      index: this.index,
+      timestamp: this.timestamp,
+      transactions: this.transactions,
+      nonce: this.nonce,
+      previousHash: this.previousHash,
+    });
+    if (t1 !== t2) {
+      console.log('help me!');
+      console.log(t1, t2);
+    }
     return true;
   }
 }

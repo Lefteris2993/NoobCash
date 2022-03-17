@@ -54,14 +54,14 @@ app.post('/ignite', async (_: Request, res: Response) => {
 });
 
 // Receive new block
-app.post('/block', (req: Request<any, any, PostBlockDTO>, res: Response) => {
+app.post('/block', async (req: Request<any, any, PostBlockDTO>, res: Response) => {
   const block = req.body.block;
   try {
-    node.postBlock(block);
+    await node.postBlock(block);
     res.status(200).send('OK\n');
   } catch (e) {
     const error = e as NoobCashError;
-    res.status(error.status).send(error.message);
+    res.status(error.status).send(`${error.message}\n`);
   }
 });
 
@@ -73,7 +73,7 @@ app.put('/transactions', async (req: Request<any, any, PutTransactionDTO>, res: 
     res.status(200).send('OK\n');
   } catch (e) {
     const error = e as NoobCashError;
-    res.status(error.status).send(error.message);
+    res.status(error.status).send(`${error.message}\n`);
   }
 });
 
@@ -86,7 +86,7 @@ app.post('/info', (req: Request<any, any, PostInfoDTO>, res: Response) => {
     res.status(200).send('OK\n');
   } catch (e) {
     const error = e as NoobCashError;
-    res.status(error.status).send(error.message);
+    res.status(error.status).send(`${error.message}\n`);
   }
 });
 
@@ -98,7 +98,7 @@ app.post('/register', (req: Request<any, any, PostRegisterDTO>, res: Response<Po
     res.status(200).send(result);
   } catch (e) {
     const error = e as NoobCashError;
-    res.status(error.status).send(error.message);
+    res.status(error.status).send(`${error.message}\n`);
   }
 });
 
@@ -109,7 +109,7 @@ app.get('/chain', (_: Request, res: Response<GetChainResponseDTO | string>) => {
     res.status(200).send(result);
   } catch (e) {
     const error = e as NoobCashError;
-    res.status(error.status).send(error.message);
+    res.status(error.status).send(`${error.message}\n`);
   }
 });
 
@@ -123,7 +123,7 @@ app.post('/transactions', async (req: Request<any, any, PostTransactionDTO>, res
     res.status(200).send('OK\n');
   } catch (e) {
     const error = e as NoobCashError;
-    res.status(error.status).send(error.message);
+    res.status(error.status).send(`${error.message}\n`);
   }
 });
 
@@ -134,7 +134,7 @@ app.get('/transactions', (_: Request, res: Response<GetTransactionsResponseDTO |
     res.status(200).send(result);
   } catch (e) {
     const error = e as NoobCashError;
-    res.status(error.status).send(error.message);
+    res.status(error.status).send(`${error.message}\n`);
   }
 });
 
@@ -145,7 +145,7 @@ app.get('/balance', (_: Request, res: Response<GetBalanceResponseDTO | string>) 
     res.status(200).send(result);
   } catch (e) {
     const error = e as NoobCashError;
-    res.status(error.status).send(error.message);
+    res.status(error.status).send(`${error.message}\n`);
   }
 });
 

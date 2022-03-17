@@ -74,7 +74,14 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
     genesisBlock.transactions = [genesisTransaction];
     genesisBlock.previousHash = '1';
     genesisBlock.nonce = 0;
-    genesisBlock.currentHash = hash([genesisTransaction]);
+    genesisBlock.currentHash = hash({
+      index: genesisBlock.index,
+      timestamp: genesisBlock.timestamp,
+      transactions: genesisBlock.transactions,
+      nonce: genesisBlock.nonce,
+      previousHash: genesisBlock.previousHash,
+    });
+    console.log(`genesis hash: ${genesisBlock.currentHash}`);
     genesisBlock.utxos.push({
       owner: this.wallet.publicKey,
       utxos: [genesisUTXO],
