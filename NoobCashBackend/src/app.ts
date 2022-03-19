@@ -80,9 +80,9 @@ app.put('/transactions', async (req: Request<any, any, PutTransactionDTO>, res: 
 // Receive chain for initialization
 app.post('/info', (req: Request<any, any, PostInfoDTO>, res: Response) => {
   const nodeInfo = req.body.nodesInfo;
-  const chain = req.body.chain;
+  const block = req.body.genesisBlock;
   try {
-    node.info(nodeInfo, chain);
+    node.info(nodeInfo, block);
     res.status(200).send('OK\n');
   } catch (e) {
     const error = e as NoobCashError;
