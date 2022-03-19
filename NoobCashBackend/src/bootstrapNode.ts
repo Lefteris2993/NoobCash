@@ -1,10 +1,8 @@
-import { Block } from "./block";
 import { configuration } from "./configuration";
 import { NoobCashNode } from "./NoobCashNode";
-import { Transaction } from "./transaction";
 import { TransactionOutput } from "./transactionOutput";
 import { hash, NoobCashError } from "./utils";
-import { NodeInfo, NoobCashBlock, NoobCashBlockChain, NoobCashTransaction, PostRegisterResponseDTO, UTXO } from "./interfaces";
+import { NodeInfo, NoobCashBlock, NoobCashTransaction, PostInfoDTO, PostRegisterResponseDTO, UTXO } from "./interfaces";
 
 export class BootstrapNode extends NoobCashNode {
   private ready = false;
@@ -43,10 +41,11 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
   }
 
   private async syncNodes() {
-    await this.broadcast('post', 'info', {
+    const data: PostInfoDTO = {
       genesisBlock: this.genesisBlock,
       nodesInfo: this.nodesInfo,
-    });
+    }
+    await this.broadcast('post', 'info', data);
     await this.sendInitialCoinsToAllNodes();
   }
   
@@ -90,7 +89,7 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
         utxos: [genesisUTXO],
       }],
     }
-    this.chainService.addBlock(genesisBlock);
+    this.chainService.addGenesis(genesisBlock);
     this.genesisBlock = genesisBlock;
     this.ready = true;
     this.ignited = true;

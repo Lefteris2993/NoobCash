@@ -1,4 +1,3 @@
-import { Block } from "./block";
 import { TransactionInput } from "./transactionInput";
 import { TransactionOutput } from "./transactionOutput";
 
@@ -13,9 +12,6 @@ export interface NoobCashBlock {
   currentHash: string;
   utxos: UTXO[];
 }
-
-// the key of the map is the block index
-export type NoobCashBlockChain = Map<number, NoobCashBlock[]>;
 
 export interface NoobCashWallet {
   publicKey: string;

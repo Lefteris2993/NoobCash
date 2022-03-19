@@ -30,27 +30,3 @@ export class Logger {
     console.log(`\x1b[31m[Timestamp]: ${(new Date).toISOString()} `, ...data ,` \x1b[0m`);
   }
 }
-
-export class Queue<T> {
-  private queue: T[] = [];
-
-  public empty(): boolean {
-    return this.queue.length === 0;
-  }
-
-  public size(): number {
-    return this.queue.length;
-  }
-
-  public enQueue(item: T): void {
-    this.queue.push(item);
-  }
-
-  public peek(): T | undefined {
-    return this.queue[0];
-  }
-
-  public deQueue(): T | undefined {
-    return this.queue.shift();
-  }
-}

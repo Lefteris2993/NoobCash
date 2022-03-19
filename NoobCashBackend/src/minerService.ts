@@ -1,9 +1,10 @@
 import { configuration } from "./configuration";
-import { NoobCashBlock, UTXO } from "./interfaces";
-import { hash, NoobCashError } from "./utils";
+import { NoobCashBlock } from "./interfaces";
+import { hash, Logger } from "./utils";
+
+const MY_MAX_INT = 8589934592;
 
 export class MinerService {
-  private miningBlock!: NoobCashBlock;
   private mining = false;
   private shouldAbortMining = false;
 
@@ -17,20 +18,49 @@ export class MinerService {
     return this.mining;
   }
 
-  public validateHash(block: NoobCashBlock): boolean {
-    const currentHash = hash({
-      index: block.index,
-      timestamp: block.timestamp,
-      transactions: block.transactions,
-      nonce: block.nonce
-    });
+  public async mineBlock(b: NoobCashBlock): Promise<NoobCashBlock | undefined> {
+    Logger.warn('Mining started');
+    this.mining = true;
+    this.shouldAbortMining = false;
+
+    let i = Math.floor(Math.random() * MY_MAX_INT);
+    const startTime = Date.now();
+    const startNum = i;
+    let j = i;
+    let currentHash: string;
     const zeros = '0'.repeat(configuration.difficulty);
-    return currentHash.slice(0, configuration.difficulty) === zeros;
+    while(true) {
+      currentHash = hash({
+        index: b.index,
+        timestamp: b.timestamp,
+        transactions: b.transactions,
+        nonce: i,
+        previousHash: b.previousHash,
+      });
+      if (currentHash.startsWith(zeros)) {
+        Logger.info(`Fount nonce: ${currentHash} in ${Date.now() - startTime}ms`);
+        break;
+      }
+      i = (i + 1) % MY_MAX_INT;
+      if (i - j > configuration.miningInterval) {
+        j = i;
+        await new Promise(resolve =>  setTimeout(resolve));
+        if (this.shouldAbortMining) {
+          Logger.warn('Mining aborted');
+          return;
+        }
+      }
+    }
+    this.mining = false;
+    const ret: NoobCashBlock = {
+      index: b.index,
+      timestamp: b.timestamp,
+      previousHash: b.previousHash,
+      transactions: b.transactions,
+      nonce: i,
+      currentHash: currentHash,
+      utxos: b.utxos,
+    }
+    return ret;     
   }
-
-  public mineBlock(b: NoobCashBlock): Promise<NoobCashBlock | undefined> {
-    throw new NoobCashError('Not implemented', 501);
-  }
-
-
 }

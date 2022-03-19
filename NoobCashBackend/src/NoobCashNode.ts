@@ -1,5 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
-import { Block } from './block';
+import axios from 'axios';
 import { ChainService } from './chainService';
 import { configuration } from './configuration';
 import { 
@@ -8,14 +7,14 @@ import {
   GetTransactionsResponseDTO, 
   NodeInfo, 
   NoobCashBlock, 
-  NoobCashBlockChain, 
   NoobCashCoins, 
   NoobCashTransaction, 
+  PostBlockDTO, 
   PostRegisterResponseDTO, 
+  PutTransactionDTO, 
   UTXO 
 } from "./interfaces";
 import { MinerService } from './minerService';
-import { Transaction } from './transaction';
 import { TransactionService } from './transactionService';
 import { Logger, NoobCashError } from './utils';
 import { Wallet } from "./wallet";
@@ -26,12 +25,18 @@ export abstract class NoobCashNode {
   protected nodeId!: number;
   protected nodesInfo: NodeInfo[] = [];
 
-  protected chainService = new ChainService();
-  protected minerService = new MinerService();
-  protected transactionService = new TransactionService();
+  protected transactionService!: TransactionService;
+  protected minerService!: MinerService;
+  protected chainService!: ChainService;
 
   constructor() {
     this.wallet = new Wallet();
+    this.transactionService = new TransactionService();
+    this.minerService = new MinerService();
+    this.chainService = new ChainService(
+      this.transactionService,
+      this.minerService,
+    );  
   }
 
   protected async broadcast(method: 'post' | 'get' | 'put', endpoint: string, data: any) {
@@ -64,11 +69,13 @@ export abstract class NoobCashNode {
     const newUtxos = JSON.parse(JSON.stringify(previousBlock.utxos)) as UTXO[];
 
     while(transactions.length !== configuration.blockCapacity) {
-      const t = this.transactionService.transactionQueue.deQueue();
+      const t = this.transactionService.transactionQueue.dequeue();
       if (!t) {
-        transactions.forEach(x => this.transactionService.transactionQueue.enQueue(x));
+        transactions.forEach(x => this.transactionService.transactionQueue.queue(x));
         return;
       }
+      if (!t.transactionId) continue;
+      if ((this.transactionService.minedTransactions.get(t.transactionId) || 0) > 0) continue;
       const senderUtxos = newUtxos.find(x => x.owner === t.senderAddress);
       if (!senderUtxos) continue;
       const res = this.transactionService.calculateInputs(t, senderUtxos);
@@ -97,9 +104,26 @@ export abstract class NoobCashNode {
     }
 
     const minedBlock = await this.minerService.mineBlock(newBlock);
-    if (minedBlock) this.broadcast('post', 'block', { block: minedBlock });
+    if (minedBlock) {
+      minedBlock.transactions.forEach(x => {
+        if (!x.transactionId) return;
+        // TODO: Not use if all of this are needed maybe test how the module works
+        if (this.transactionService.minedTransactions.contains(x.transactionId)) {
+          const prevValue = this.transactionService.minedTransactions.get(x.transactionId);
+          if (!prevValue) return;
+          this.transactionService.minedTransactions.delete(x.transactionId);
+          this.transactionService.minedTransactions.insert(x.transactionId, prevValue + 1);
+        } else {
+          this.transactionService.minedTransactions.insert(x.transactionId, 1);
+        }
+      });
+      const data: PostBlockDTO = {
+        block: minedBlock,
+      }
+      this.broadcast('post', 'block', data);
+    }
 
-    if (this.transactionService.transactionQueue.size() > configuration.blockCapacity) {
+    if (this.transactionService.transactionQueue.length > configuration.blockCapacity) {
       setTimeout(() => this.mineAndBroadcastBlock());
     }
   }
@@ -125,8 +149,8 @@ export abstract class NoobCashNode {
       throw new NoobCashError('Invalid transaction', 400);
     }
     
-    this.transactionService.transactionQueue.enQueue(t);
-    if (this.transactionService.transactionQueue.size() > configuration.blockCapacity) {
+    this.transactionService.transactionQueue.queue(t);
+    if (this.transactionService.transactionQueue.length > configuration.blockCapacity) {
       setTimeout(() => this.mineAndBroadcastBlock());
     }
   }
@@ -151,10 +175,14 @@ export abstract class NoobCashNode {
     this.transactionService.setTransactionId(newTransaction);
     this.transactionService.signTransaction(newTransaction, this.wallet.privateKey);
 
-    this.transactionService.transactionQueue.enQueue(newTransaction);
-    this.broadcast('put', 'transactions', { transaction: newTransaction });
+    this.transactionService.transactionQueue.queue(newTransaction);
+    
+    const data: PutTransactionDTO = {
+      transaction: newTransaction,
+    } 
+    this.broadcast('put', 'transactions', data);
 
-    if (this.transactionService.transactionQueue.size() > configuration.blockCapacity) {
+    if (this.transactionService.transactionQueue.length > configuration.blockCapacity) {
       setTimeout(() => this.mineAndBroadcastBlock());
     }
   }

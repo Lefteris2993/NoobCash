@@ -1,6 +1,6 @@
 import axios from "axios";
 import { configuration } from "./configuration";
-import { NodeInfo, NoobCashBlock, NoobCashBlockChain, PostRegisterDTO, PostRegisterResponseDTO, UTXO } from "./interfaces";
+import { NodeInfo, NoobCashBlock, PostRegisterDTO, PostRegisterResponseDTO, UTXO } from "./interfaces";
 import { NoobCashNode } from "./NoobCashNode";
 import { NoobCashError } from "./utils";
 
@@ -53,7 +53,7 @@ IkY2MMH7ICoWqZmh69dOasUDMk8fD+J7fCSMl6I5z4qW
   }
 
   public info(nodeInfo: NodeInfo[], genesisBlock: NoobCashBlock) {
-    throw new NoobCashError('Not implemented', 501);
     this.nodesInfo = nodeInfo;
+    this.chainService.addGenesis(genesisBlock);
   }
 }

@@ -1,15 +1,19 @@
 import { AvlTree } from "@tyriar/avl-tree";
 import { RSA_PKCS1_PSS_PADDING } from "constants";
 import { sign, verify } from "crypto";
+import PriorityQueue from "ts-priority-queue";
 import { configuration } from "./configuration";
 import { NoobCashCoins, NoobCashTransaction, UTXO, ValidateResult } from "./interfaces";
 import { TransactionInput } from "./transactionInput";
 import { TransactionOutput } from "./transactionOutput";
-import { hash, Logger, NoobCashError, Queue } from "./utils";
+import { hash, Logger, NoobCashError } from "./utils";
 
 export class TransactionService {
   public minedTransactions = new AvlTree<string, number>();
-  public transactionQueue = new Queue<NoobCashTransaction>();
+  public transactionQueue = new PriorityQueue<NoobCashTransaction>({ 
+    comparator: (a: NoobCashTransaction, b: NoobCashTransaction) => {
+      return a.timestamp - b.timestamp;
+  }});
 
   constructor() {}
 
