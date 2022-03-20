@@ -69,11 +69,11 @@ export abstract class NoobCashNode {
     const newUtxos = JSON.parse(JSON.stringify(previousBlock.utxos)) as UTXO[];
 
     while(transactions.length !== configuration.blockCapacity) {
-      const t = this.transactionService.transactionQueue.dequeue();
-      if (!t) {
+      if (this.transactionService.transactionQueue.length < 1) {
         transactions.forEach(x => this.transactionService.transactionQueue.queue(x));
         return;
       }
+      const t = this.transactionService.transactionQueue.dequeue();
       if (!t.transactionId) continue;
       if ((this.transactionService.minedTransactions.get(t.transactionId) || 0) > 0) continue;
       const senderUtxos = newUtxos.find(x => x.owner === t.senderAddress);
@@ -146,7 +146,8 @@ export abstract class NoobCashNode {
   }
 
   public getChain(): GetChainResponseDTO {
-    throw new NoobCashError('Not implemented', 501);
+    const chain = this.chainService.getBlockchain();
+    return { chain: chain };
   }
 
   public putTransaction(t: NoobCashTransaction) {

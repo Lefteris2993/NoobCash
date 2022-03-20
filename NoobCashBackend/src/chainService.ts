@@ -191,4 +191,18 @@ export class ChainService {
     }, 1000);
   }
 
+  public getBlockchain(): NoobCashBlock[] {
+    const chain: NoobCashBlock[] = [];
+    let currHash = this.currentBlock.currentHash;
+    for (let i = this.currentBlock.index; i > -1; i--) {
+      const blocks = this.blockchain.get(i);
+      if (!blocks) break;
+      const b = blocks.find(x => x.currentHash === currHash);
+      if (!b) break;
+      chain.unshift(b);
+      currHash = b.previousHash;
+    }
+    return chain;
+  }
+
 }
