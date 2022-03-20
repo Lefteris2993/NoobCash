@@ -26,9 +26,6 @@ export class ChainService {
   ) {
     this.transactionService = transactionService;
     this.minerService = minerService;
-    setInterval(() => {
-      this.trimBlockChain();
-    }, 1000);
   }
 
   // Removes orphan blocks
@@ -81,6 +78,7 @@ export class ChainService {
 
   // Checks if some block from the queue can be added to the chain
   private checkHeap(): void {
+    if (this.futureBlockHeap.length < 1) return;
     let b = this.futureBlockHeap.peek();
     if (b.index > this.currentBlock.index + 1) return;
     b = this.futureBlockHeap.dequeue();
@@ -187,6 +185,10 @@ export class ChainService {
     if (!b.transactions[0].transactionId) throw new NoobCashError('Invalid block', 400);
     this.transactionService.minedTransactions.insert(b.transactions[0].transactionId, 1);
     this.eldestIndex = b.index;
+
+    setInterval(() => {
+      this.trimBlockChain();
+    }, 1000);
   }
 
 }

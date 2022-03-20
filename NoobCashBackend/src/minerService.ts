@@ -47,6 +47,7 @@ export class MinerService {
         await new Promise(resolve =>  setTimeout(resolve));
         if (this.shouldAbortMining) {
           Logger.warn('Mining aborted');
+          this.mining = false;
           return;
         }
       }

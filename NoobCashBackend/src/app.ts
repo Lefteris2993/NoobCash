@@ -57,7 +57,7 @@ app.post('/ignite', async (_: Request, res: Response) => {
 app.post('/block', async (req: Request<any, any, PostBlockDTO>, res: Response) => {
   const block = req.body.block;
   try {
-    await node.postBlock(block);
+    node.postBlock(block);
     res.status(200).send('OK\n');
   } catch (e) {
     const error = e as NoobCashError;

@@ -121,9 +121,10 @@ export abstract class NoobCashNode {
         block: minedBlock,
       }
       this.broadcast('post', 'block', data);
+      this.chainService.addBlock(minedBlock);
     }
 
-    if (this.transactionService.transactionQueue.length > configuration.blockCapacity) {
+    if (this.transactionService.transactionQueue.length >= configuration.blockCapacity) {
       setTimeout(() => this.mineAndBroadcastBlock());
     }
   }
@@ -133,7 +134,11 @@ export abstract class NoobCashNode {
   public abstract info(nodeInfo: NodeInfo[], genesisBlock: NoobCashBlock): void;
 
   public getBalance(): GetBalanceResponseDTO {
-    throw new NoobCashError('Not implemented', 501);
+    const b = this.chainService.getLatestBlock();
+    const utxos = b.utxos.find(x => x.owner === this.wallet.publicKey);
+    if (!utxos) throw new NoobCashError('Internal server error', 500);
+    const amount = utxos.utxos.reduce((x, y) => x + y.amount , 0);
+    return { amount: amount };
   }
 
   public getTransactions(): GetTransactionsResponseDTO {
@@ -150,7 +155,7 @@ export abstract class NoobCashNode {
     }
     
     this.transactionService.transactionQueue.queue(t);
-    if (this.transactionService.transactionQueue.length > configuration.blockCapacity) {
+    if (this.transactionService.transactionQueue.length >= configuration.blockCapacity) {
       setTimeout(() => this.mineAndBroadcastBlock());
     }
   }
@@ -182,7 +187,7 @@ export abstract class NoobCashNode {
     } 
     this.broadcast('put', 'transactions', data);
 
-    if (this.transactionService.transactionQueue.length > configuration.blockCapacity) {
+    if (this.transactionService.transactionQueue.length >= configuration.blockCapacity) {
       setTimeout(() => this.mineAndBroadcastBlock());
     }
   }
