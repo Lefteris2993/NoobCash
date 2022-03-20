@@ -1,4 +1,3 @@
-import { Block } from "./block";
 import { TransactionInput } from "./transactionInput";
 import { TransactionOutput } from "./transactionOutput";
 
@@ -7,14 +6,12 @@ export type NoobCashCoins = number;
 export interface NoobCashBlock {
   index: number;
   timestamp: number;
+  previousHash: string;
   transactions: NoobCashTransaction[];
   nonce: number;
   currentHash: string;
-  previousHash: string;
   utxos: UTXO[];
 }
-
-export type NoobCashBlockChain = Block[];
 
 export interface NoobCashWallet {
   publicKey: string;
@@ -25,11 +22,11 @@ export interface NoobCashTransaction {
   senderAddress: string;
   receiverAddress: string;
   amount: NoobCashCoins;
-  transactionId: string;
-  transactionInputs: NoobCashTransactionInput[];
-  transactionOutputs: NoobCashTransactionOutput[];
-  signature: Buffer;
   timestamp: number;
+  transactionId?: string;
+  transactionInputs?: NoobCashTransactionInput[];
+  transactionOutputs?: NoobCashTransactionOutput[];
+  signature?: Buffer;
 }
 
 export interface ValidateResult { 
@@ -61,7 +58,7 @@ export interface UTXO {
 }
 
 export interface PostInfoDTO {
-  chain: NoobCashBlockChain,
+  genesisBlock: NoobCashBlock,
   nodesInfo: NodeInfo[],
 }
 

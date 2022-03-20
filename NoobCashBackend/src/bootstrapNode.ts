@@ -1,13 +1,12 @@
-import { Block } from "./block";
 import { configuration } from "./configuration";
 import { NoobCashNode } from "./NoobCashNode";
-import { Transaction } from "./transaction";
 import { TransactionOutput } from "./transactionOutput";
 import { hash, NoobCashError } from "./utils";
-import { NodeInfo, NoobCashBlockChain, PostRegisterResponseDTO, UTXO } from "./interfaces";
+import { NodeInfo, NoobCashBlock, NoobCashTransaction, PostInfoDTO, PostRegisterResponseDTO, UTXO } from "./interfaces";
 
 export class BootstrapNode extends NoobCashNode {
   private ready = false;
+  private genesisBlock!: NoobCashBlock;
 
   constructor() {
     super();
@@ -42,11 +41,11 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
   }
 
   private async syncNodes() {
-    await this.broadcast('post', 'info', {
-      chain: this.blockChain,
+    const data: PostInfoDTO = {
+      genesisBlock: this.genesisBlock,
       nodesInfo: this.nodesInfo,
-    });
-    this.currentBlock = undefined;
+    }
+    await this.broadcast('post', 'info', data);
     await this.sendInitialCoinsToAllNodes();
   }
   
@@ -56,38 +55,42 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
       url: configuration.url, 
       publicKey: this.wallet.publicKey,
     });
-    const genesisTransaction = new Transaction(
-      'God',
-      this.wallet.publicKey,
-      configuration.totalNodes * 100,
-    );
-    genesisTransaction.setTransactionId();
-    genesisTransaction.signTransaction(this.wallet.privateKey);
+    const genesisTransaction: NoobCashTransaction = {
+      senderAddress: 'God',
+      receiverAddress: this.wallet.publicKey,
+      amount: configuration.totalNodes * 100,
+      timestamp: Date.now(),
+    }
+    const genId = this.transactionService.setTransactionId(genesisTransaction);
+    this.transactionService.signTransaction(genesisTransaction, this.wallet.privateKey);
+
     const genesisUTXO = new TransactionOutput(
-      genesisTransaction.transactionId,
+      genId,
       genesisTransaction.receiverAddress,
       genesisTransaction.amount
     );
+    genesisTransaction.transactionOutputs = [];
     genesisTransaction.transactionOutputs.push(genesisUTXO);
-    const genesisBlock = new Block();
-    genesisBlock.index = 0;
-    genesisBlock.transactions = [genesisTransaction];
-    genesisBlock.previousHash = '1';
-    genesisBlock.nonce = 0;
-    genesisBlock.currentHash = hash({
-      index: genesisBlock.index,
-      timestamp: genesisBlock.timestamp,
-      transactions: genesisBlock.transactions,
-      nonce: genesisBlock.nonce,
-      previousHash: genesisBlock.previousHash,
-    });
-    console.log(`genesis hash: ${genesisBlock.currentHash}`);
-    genesisBlock.utxos.push({
-      owner: this.wallet.publicKey,
-      utxos: [genesisUTXO],
-    });
-    this.blockChain.push(genesisBlock);
-    this.currentBlock = genesisBlock;
+    const genesisBlock: NoobCashBlock = {
+      index: 0,
+      transactions: [genesisTransaction],
+      previousHash: '1',
+      nonce: 0,
+      currentHash: hash({
+        index: 0,
+        timestamp: Date.now(),
+        transactions: [genesisTransaction],
+        nonce: 0,
+        previousHash: '1',
+      }),
+      timestamp: Date.now(),
+      utxos: [{
+        owner: this.wallet.publicKey,
+        utxos: [genesisUTXO],
+      }],
+    }
+    this.chainService.addGenesis(genesisBlock);
+    this.genesisBlock = genesisBlock;
     this.ready = true;
     this.ignited = true;
   }
@@ -102,11 +105,11 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
       url: nodeInfo.url,
       publicKey: nodeInfo.publicKey,
     });
-    this.currentBlock?.utxos.push({ owner: nodeInfo.publicKey, utxos: [] });
+    this.genesisBlock?.utxos.push({ owner: nodeInfo.publicKey, utxos: [] });
     return { nodeId: newNodeId };
   }
 
-  public info(_info: NodeInfo[], _chain: NoobCashBlockChain) {
+  public info(_info: NodeInfo[], _block: NoobCashBlock) {
     throw new NoobCashError('I am a teapot', 418);
   }
 }

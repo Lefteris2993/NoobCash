@@ -1,6 +1,6 @@
 import axios from "axios";
 import { configuration } from "./configuration";
-import { NodeInfo, NoobCashBlockChain, PostRegisterDTO, PostRegisterResponseDTO, UTXO } from "./interfaces";
+import { NodeInfo, NoobCashBlock, PostRegisterDTO, PostRegisterResponseDTO, UTXO } from "./interfaces";
 import { NoobCashNode } from "./NoobCashNode";
 import { NoobCashError } from "./utils";
 
@@ -52,8 +52,8 @@ IkY2MMH7ICoWqZmh69dOasUDMk8fD+J7fCSMl6I5z4qW
     throw new NoobCashError('I am a teapot', 418);
   }
 
-  public info(nodeInfo: NodeInfo[], chain: NoobCashBlockChain) {
+  public info(nodeInfo: NodeInfo[], genesisBlock: NoobCashBlock) {
     this.nodesInfo = nodeInfo;
-    this.blockChain = chain;
+    this.chainService.addGenesis(genesisBlock);
   }
 }
