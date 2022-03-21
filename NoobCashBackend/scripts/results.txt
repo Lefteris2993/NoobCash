@@ -1,12 +1,23 @@
-nodes: 5, capacity: 1, difficulty: 4, start-time: 16:52:51.824, end-time: 16:54:20.992
-nodes: 5, capacity: 1, difficulty: 5, start-time: 16:55:57.812, end-time: 17:14:56.460
-nodes: 5, capacity: 5, difficulty: 4, start-time: 17:20:17.179, end-time: 17:21:19.603
-nodes: 5, capacity: 5, difficulty: 5, start-time: 17:22:51.462, end-time: 17:35:22.885
-nodes: 5, capacity: 10, difficulty: 4, start-time: 17:39:53.789, end-time: 17:40:51.778
-nodes: 5, capacity: 10, difficulty: 5, start-time: 17:43:56.322, end-time: 17:54:57.512
-nodes: 10, capacity: 1, difficulty: 4, start-time: 17:58:31.174 , end-time: 18:00:46.733
-nodes: 10, capacity: 1, difficulty: 5, start-time: 18:10:37.312, end-time: 18:33:40.587 
-nodes: 10, capacity: 5, difficulty: 4, start-time: 18:36:45.130, end-time: 18:38:29.732
-nodes: 10, capacity: 5, difficulty: 5, start-time: 18:39:38.412, end-time: 18:54:00.467
-nodes: 10, capacity: 10, difficulty: 4, start-time: 18:56:42.513, end-time: 18:58:18.117
-nodes: 10, capacity: 10, difficulty: 5, start-time: 18:59:34.457, end-time: 19:12:47.154
+nodes: 5, capacity: 1, difficulty: 4, start-time: 16:52:51.824, end-time: 16:54:20.992, total time in secs: 89.17 (1.49 mins), total transactions: 500, total blocks: 500, throughput: 5.60 transactions/sec, block time: 0.17 sec
+
+nodes: 5, capacity: 1, difficulty: 5, start-time: 16:55:57.812, end-time: 17:14:56.460, total time in secs: 1,138.65 (18.98 mins), total transactions: 500, total blocks: 500, throughput: 0.43 transactions/sec, block time: 2.27 sec
+
+nodes: 5, capacity: 5, difficulty: 4, start-time: 17:20:17.179, end-time: 17:21:19.603, total time in secs: 62.42 (1.04 mins), total transactions: 500, total blocks: 100, throughput: 8.01 transactions/sec, block time: 0.62 sec
+
+nodes: 5, capacity: 5, difficulty: 5, start-time: 17:22:51.462, end-time: 17:35:22.885, total time in secs: 751.42 (12.52 mins), total transactions: 500, total blocks: 100, throughput: 0.66 transactions/sec, block time: 7.51 sec
+
+nodes: 5, capacity: 10, difficulty: 4, start-time: 17:39:53.789, end-time: 17:40:51.778, total time in secs: 57.99 (0.97 mins), total transactions: 500, total blocks: 50, throughput: 8.62 transactions/sec, block time: 1.15 sec
+
+nodes: 5, capacity: 10, difficulty: 5, start-time: 17:43:56.322, end-time: 17:54:57.512, total time in secs: 661.19 (11.02 mins), total transactions: 500, total blocks: 50, throughput: 0.75 transactions/sec, block time: 13.23 sec
+
+nodes: 10, capacity: 1, difficulty: 4, start-time: 17:58:31.174 , end-time: 18:00:46.733, total time in secs: 135.56 (2.26 mins), total transactions: 1000, total blocks: 1000, throughput: 7.37 transactions/sec, block time: 0.13 sec
+
+nodes: 10, capacity: 1, difficulty: 5, start-time: 18:10:37.312, end-time: 18:33:40.587, total time in secs: 1,383.28 (23.05 mins), total transactions: 1000, total blocks: 1000, throughput: 0.72 transactions/sec, block time: 1.38 sec
+
+nodes: 10, capacity: 5, difficulty: 4, start-time: 18:36:45.130, end-time: 18:38:29.732, total time in secs: 104.60 (1.74 mins), total transactions: 1000, total blocks: 200, throughput: 9.56 transactions/sec, block time: 0.52 sec
+
+nodes: 10, capacity: 5, difficulty: 5, start-time: 18:39:38.412, end-time: 18:54:00.467, total time in secs: 862.06 (14.37 mins), total transactions: 1000, total blocks: 200, throughput: 1.16 transactions/sec, block time: 4.31 sec
+
+nodes: 10, capacity: 10, difficulty: 4, start-time: 18:56:42.513, end-time: 18:58:18.117, total time in secs: 95.60 (1.59 mins), total transactions: 1000, total blocks: 100, throughput: 10.46 transactions/sec, block time: 0.95 sec
+
+nodes: 10, capacity: 10, difficulty: 5, start-time: 18:59:34.457, end-time: 19:12:47.154, total time in secs: 792.70 (13.21 mins), total transactions: 1000, total blocks: 100, throughput: 1.26 transactions/sec, block time: 7.92 sec
