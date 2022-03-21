@@ -17,7 +17,7 @@ do
   # if [[ $i -eq 10 ]]; then
   #   break
   # fi
-  sleep 0.$RANDOM
+  sleep 0.0$RANDOM
   arr=(${line// / })
   curl --location --request POST http://${_NODE_ADDRESS}$1:${_PORT}$1/transactions --header 'Content-Type: application/json' --data-raw '{ "amount": '${arr[1]}', "receiverId": '${arr[0]}' }'
 done < "$input"

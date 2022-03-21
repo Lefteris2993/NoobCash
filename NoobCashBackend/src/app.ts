@@ -22,7 +22,7 @@ const app = express();
 const port = configuration.port;
 
 // Write pid to file
-fs.writeFileSync(`.pid${configuration.port % 10}`, `${process.pid}`);
+fs.writeFileSync(`.pid${configuration.port % 10 || '10'}`, `${process.pid}`);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

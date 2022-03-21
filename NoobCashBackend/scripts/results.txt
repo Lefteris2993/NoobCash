@@ -1,0 +1,12 @@
+nodes: 5, capacity: 1, difficulty: 4, start-time: 16:52:51.824, end-time: 16:54:20.992
+nodes: 5, capacity: 1, difficulty: 5, start-time: 16:55:57.812, end-time: 17:14:56.460
+nodes: 5, capacity: 5, difficulty: 4, start-time: 17:20:17.179, end-time: 17:21:19.603
+nodes: 5, capacity: 5, difficulty: 5, start-time: 17:22:51.462, end-time: 17:35:22.885
+nodes: 5, capacity: 10, difficulty: 4, start-time: 17:39:53.789, end-time: 17:40:51.778
+nodes: 5, capacity: 10, difficulty: 5, start-time: 17:43:56.322, end-time: 17:54:57.512
+nodes: 10, capacity: 1, difficulty: 4, start-time: 17:58:31.174 , end-time: 18:00:46.733
+nodes: 10, capacity: 1, difficulty: 5, start-time: 18:10:37.312, end-time: 18:33:40.587 
+nodes: 10, capacity: 5, difficulty: 4, start-time: 18:36:45.130, end-time: 18:38:29.732
+nodes: 10, capacity: 5, difficulty: 5, start-time: 18:39:38.412, end-time: 18:54:00.467
+nodes: 10, capacity: 10, difficulty: 4, start-time: 18:56:42.513, end-time: 18:58:18.117
+nodes: 10, capacity: 10, difficulty: 5, start-time: 18:59:34.457, end-time: 19:12:47.154
