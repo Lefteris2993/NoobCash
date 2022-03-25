@@ -48,6 +48,7 @@ app.get('/healthcheck', (_, res) => {
 app.post('/ignite', async (req:  Request<any, any, PostIgniteDTO>, res: Response) => {
   const logFileStream = fs.createWriteStream(`/home/user/.log${count++}`);
   Logger.logFileStream = logFileStream;
+  Logger.console = new console.Console(Logger.logFileStream, Logger.logFileStream);
 
   const configuration = req.body.configuration;
   configuration.production = configuration.production as unknown as string === 'true';
