@@ -21,6 +21,8 @@ do
   fi
 done
 
+sleep 1
+
 for (( i=1; i<=$_TOTAL_NODES; i++ ))
 do  
   ./_runNodeTests.sh $i $_TOTAL_NODES &
