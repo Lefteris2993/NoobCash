@@ -29,6 +29,17 @@ export interface NoobCashTransaction {
   signature?: Buffer;
 }
 
+export interface NooBCashConfiguration {
+  difficulty: number;
+  totalNodes: number;
+  url: string;
+  bootstrapNodeUrl: string;
+  secret: string;
+  blockCapacity: number;
+  production: boolean;
+  miningInterval: number;
+}
+
 export interface ValidateResult { 
   newInputs: TransactionInput[]; 
   usedOutputs: TransactionOutput[];
@@ -94,4 +105,8 @@ export interface GetTransactionsResponseDTO {
 
 export interface GetBalanceResponseDTO {
   amount: NoobCashCoins;
+}
+
+export interface PostIgniteDTO {
+  configuration: NooBCashConfiguration;
 }

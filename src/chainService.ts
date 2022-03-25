@@ -1,5 +1,4 @@
 import PriorityQueue from "ts-priority-queue";
-import { configuration } from "./configuration";
 import { NoobCashBlock, UTXO } from "./interfaces";
 import { MinerService } from "./minerService";
 import { TransactionService } from "./transactionService";
@@ -15,6 +14,7 @@ export class ChainService {
   private eldestIndex!: number; 
   private transactionService!: TransactionService;
   private minerService!: MinerService;
+  private difficulty!: number;
 
   private maxChainLength = 42;
   private maxTimeout = 1000; //ms
@@ -23,9 +23,11 @@ export class ChainService {
   constructor(
     transactionService: TransactionService,
     minerService: MinerService,
+    difficulty: number
   ) {
     this.transactionService = transactionService;
     this.minerService = minerService;
+    this.difficulty = difficulty;
   }
 
   // Removes orphan blocks
@@ -120,8 +122,8 @@ export class ChainService {
       nonce: b.nonce,
       previousHash: b.previousHash,
     });
-    const zeros = '0'.repeat(configuration.difficulty);
-    return currentHash.slice(0, configuration.difficulty) === zeros && currentHash === b.currentHash;
+    const zeros = '0'.repeat(this.difficulty);
+    return currentHash.slice(0, this.difficulty) === zeros && currentHash === b.currentHash;
   }
 
   // Validates Transactions and utxos consistency 

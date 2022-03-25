@@ -1,4 +1,3 @@
-import { configuration } from "./configuration";
 import { NoobCashBlock } from "./interfaces";
 import { hash, Logger } from "./utils";
 
@@ -7,8 +6,16 @@ const MY_MAX_INT = 8589934592;
 export class MinerService {
   private mining = false;
   private shouldAbortMining = false;
+  private difficulty!: number;
+  private miningInterval!: number;
 
-  constructor() {}
+  constructor(
+    difficulty: number,
+    miningInterval: number,
+  ) {
+    this.difficulty = difficulty;
+    this.miningInterval = miningInterval
+  }
 
   public abortMining(): void {
     this.shouldAbortMining = true;
@@ -28,7 +35,7 @@ export class MinerService {
     const startNum = i;
     let j = i;
     let currentHash: string;
-    const zeros = '0'.repeat(configuration.difficulty);
+    const zeros = '0'.repeat(this.difficulty);
     while(true) {
       currentHash = hash({
         index: b.index,
@@ -42,7 +49,7 @@ export class MinerService {
         break;
       }
       i = (i + 1) % MY_MAX_INT;
-      if (i - j > configuration.miningInterval) {
+      if (i - j > this.miningInterval) {
         j = i;
         await new Promise(resolve =>  setTimeout(resolve));
         if (this.shouldAbortMining) {

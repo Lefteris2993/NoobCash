@@ -1,17 +1,23 @@
-import { configuration } from "./configuration";
 import { NoobCashNode } from "./NoobCashNode";
 import { TransactionOutput } from "./transactionOutput";
 import { hash, NoobCashError } from "./utils";
-import { NodeInfo, NoobCashBlock, NoobCashTransaction, PostInfoDTO, PostRegisterResponseDTO, UTXO } from "./interfaces";
+import { 
+  NodeInfo, 
+  NoobCashBlock, 
+  NooBCashConfiguration, 
+  NoobCashTransaction, 
+  PostInfoDTO, 
+  PostRegisterResponseDTO, 
+} from "./interfaces";
 
 export class BootstrapNode extends NoobCashNode {
   private ready = false;
   private genesisBlock!: NoobCashBlock;
 
-  constructor() {
-    super();
+  constructor(configuration: NooBCashConfiguration) {
+    super(configuration);
     this.nodeId = 0;
-    if (!configuration.production) {
+    if (!this.configuration.production) {
       this.wallet.publicKey = `-----BEGIN RSA PUBLIC KEY-----
 MEoCQwMAbu2vqE7dAgSUScs5B1Kj1nYOKt33NuxP4ieQrvOtyhPIwS+t4vtT9oyh
 Xiw5qwgFMM4RAV2hj0R7o7vUGzE/jT0CAwEBAQ==
@@ -52,13 +58,13 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
   public async ignite (): Promise<void>  {
     if (this.ignited) throw new NoobCashError('Already ignited', 400);
     this.nodesInfo.push({ 
-      url: configuration.url, 
+      url: this.configuration.url, 
       publicKey: this.wallet.publicKey,
     });
     const genesisTransaction: NoobCashTransaction = {
       senderAddress: 'God',
       receiverAddress: this.wallet.publicKey,
-      amount: configuration.totalNodes * 100,
+      amount: this.configuration.totalNodes * 100,
       timestamp: Date.now(),
     }
     const genId = this.transactionService.setTransactionId(genesisTransaction);
@@ -98,7 +104,7 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
   public register(nodeInfo: NodeInfo): PostRegisterResponseDTO {
     if (!this.ready) throw new NoobCashError('Not ready. Try again', 503);
     const newNodeId = this.nodesInfo.length;
-    if (newNodeId === configuration.totalNodes - 1) {
+    if (newNodeId === this.configuration.totalNodes - 1) {
       setTimeout(() => this.syncNodes());
     }
     this.nodesInfo.push({

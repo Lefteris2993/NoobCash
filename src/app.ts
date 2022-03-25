@@ -1,6 +1,5 @@
 import express, { NextFunction } from 'express';
 import { BootstrapNode } from './bootstrapNode';
-import { configuration } from './configuration';
 import { NoobCashNode } from './NoobCashNode';
 import { SimpleNode } from './simpleNode';
 import { Request, Response } from 'express';
@@ -9,6 +8,7 @@ import {
   GetChainResponseDTO, 
   GetTransactionsResponseDTO, 
   PostBlockDTO, 
+  PostIgniteDTO, 
   PostInfoDTO, 
   PostRegisterDTO, 
   PostRegisterResponseDTO, 
@@ -19,10 +19,12 @@ import { Logger, NoobCashError } from './utils';
 import * as fs from 'fs';
 
 const app = express();
-const port = configuration.port;
+const port = Number(process.env.PORT || 3000);
+const isBootstrap = process.env.IS_BOOTSTRAP === 'true';
+let count = 0;
 
 // Write pid to file
-fs.writeFileSync(`.pid${configuration.port % 10 || '10'}`, `${process.pid}`);
+fs.writeFileSync(`.pid${port % 10 || '10'}`, `${process.pid}`);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -37,18 +39,22 @@ app.use((
 
 let node: NoobCashNode;
 
-if (configuration.isBootstrap)
-  node = new BootstrapNode();
-else 
-  node = new SimpleNode()
-
 // An endpoint to see that the node is up and running
 app.get('/healthcheck', (_, res) => {
   res.status(200).send('Up and running!\n')
 });
 
 // Initialize node, join network
-app.post('/ignite', async (_: Request, res: Response) => {
+app.post('/ignite', async (req:  Request<any, any, PostIgniteDTO>, res: Response) => {
+  const logFileStream = fs.createWriteStream(`/home/user/.log${count}`);
+  Logger.logFileStream = logFileStream;
+
+  const configuration = req.body.configuration;
+  Logger.warn(`Starting new configuration: nodes: ${configuration.totalNodes} capacity: ${configuration.blockCapacity} difficulty: ${configuration.difficulty}`);
+  if (isBootstrap)
+    node = new BootstrapNode(configuration);
+  else 
+    node = new SimpleNode(configuration);
   await node.ignite();
   res.status(200).send('OK\n');
 });

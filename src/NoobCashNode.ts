@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { ChainService } from './chainService';
-import { configuration } from './configuration';
 import { 
   GetBalanceResponseDTO, 
   GetChainResponseDTO, 
@@ -8,6 +7,7 @@ import {
   NodeInfo, 
   NoobCashBlock, 
   NoobCashCoins, 
+  NooBCashConfiguration, 
   NoobCashTransaction, 
   PostBlockDTO, 
   PostRegisterResponseDTO, 
@@ -24,18 +24,26 @@ export abstract class NoobCashNode {
   protected wallet!: Wallet;
   protected nodeId!: number;
   protected nodesInfo: NodeInfo[] = [];
+  protected configuration!: NooBCashConfiguration;
 
   protected transactionService!: TransactionService;
   protected minerService!: MinerService;
   protected chainService!: ChainService;
 
-  constructor() {
+  constructor(configuration: NooBCashConfiguration) {
+    this.configuration = configuration;
     this.wallet = new Wallet();
-    this.transactionService = new TransactionService();
-    this.minerService = new MinerService();
+    this.transactionService = new TransactionService(
+      this.configuration.secret
+    );
+    this.minerService = new MinerService(
+      this.configuration.difficulty,
+      this.configuration.miningInterval,
+    );
     this.chainService = new ChainService(
       this.transactionService,
       this.minerService,
+      this.configuration.difficulty,
     );  
   }
 
@@ -68,7 +76,7 @@ export abstract class NoobCashNode {
     const transactions: NoobCashTransaction[] = []
     const newUtxos = JSON.parse(JSON.stringify(previousBlock.utxos)) as UTXO[];
 
-    while(transactions.length !== configuration.blockCapacity) {
+    while(transactions.length !== this.configuration.blockCapacity) {
       if (this.transactionService.transactionQueue.length < 1) {
         transactions.forEach(x => this.transactionService.transactionQueue.queue(x));
         return;
@@ -124,7 +132,7 @@ export abstract class NoobCashNode {
       this.chainService.addBlock(minedBlock);
     }
 
-    if (this.transactionService.transactionQueue.length >= configuration.blockCapacity) {
+    if (this.transactionService.transactionQueue.length >= this.configuration.blockCapacity) {
       setTimeout(() => this.mineAndBroadcastBlock());
     }
   }
@@ -156,7 +164,7 @@ export abstract class NoobCashNode {
     }
     
     this.transactionService.transactionQueue.queue(t);
-    if (this.transactionService.transactionQueue.length >= configuration.blockCapacity) {
+    if (this.transactionService.transactionQueue.length >= this.configuration.blockCapacity) {
       setTimeout(() => this.mineAndBroadcastBlock());
     }
   }
@@ -188,7 +196,7 @@ export abstract class NoobCashNode {
     } 
     this.broadcast('put', 'transactions', data);
 
-    if (this.transactionService.transactionQueue.length >= configuration.blockCapacity) {
+    if (this.transactionService.transactionQueue.length >= this.configuration.blockCapacity) {
       setTimeout(() => this.mineAndBroadcastBlock());
     }
   }

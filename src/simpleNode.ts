@@ -1,13 +1,18 @@
 import axios from "axios";
-import { configuration } from "./configuration";
-import { NodeInfo, NoobCashBlock, PostRegisterDTO, PostRegisterResponseDTO, UTXO } from "./interfaces";
+import { 
+  NodeInfo, 
+  NoobCashBlock, 
+  NooBCashConfiguration, 
+  PostRegisterDTO, 
+  PostRegisterResponseDTO,
+} from "./interfaces";
 import { NoobCashNode } from "./NoobCashNode";
 import { NoobCashError } from "./utils";
 
 export class SimpleNode extends NoobCashNode {
 
-  constructor() {
-    super();
+  constructor(configuration: NooBCashConfiguration) {
+    super(configuration);
     if (!configuration.production) {
       this.wallet.publicKey = `-----BEGIN RSA PUBLIC KEY-----
 MEoCQwNhFtNcV+GCba7VC34llMZHP+/HDkIwIar2omnLd3d+pDRpW+wCKNomtSf2
@@ -34,11 +39,11 @@ IkY2MMH7ICoWqZmh69dOasUDMk8fD+J7fCSMl6I5z4qW
       try {
         const data: PostRegisterDTO = {
           nodeInfo: {
-            url: configuration.url,
+            url: this.configuration.url,
             publicKey: this.wallet.publicKey,
           }
         }
-        let response = await axios.post<PostRegisterResponseDTO>(`${configuration.bootstrapNodeUrl}/register`, data);
+        let response = await axios.post<PostRegisterResponseDTO>(`${this.configuration.bootstrapNodeUrl}/register`, data);
         this.nodeId = response.data.nodeId;
         break;
       } catch (error) {

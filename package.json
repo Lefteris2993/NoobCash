@@ -19,7 +19,6 @@
   "dependencies": {
     "@tyriar/avl-tree": "^2.0.6",
     "axios": "^0.26.0",
-    "dotenv": "^16.0.0",
     "express": "^4.17.3",
     "ts-priority-queue": "^0.1.1"
   }
