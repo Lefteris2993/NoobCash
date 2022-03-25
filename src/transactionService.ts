@@ -42,7 +42,6 @@ export class TransactionService {
 
   public signTransaction(t: NoobCashTransaction, privateKey: string): Buffer {
     const verifiableData = this.getVerifiableData(t);
-    console.log(privateKey, this.secret);
     const signature = sign('sha256', Buffer.from(verifiableData), {
       key: privateKey,
       passphrase: this.secret,
