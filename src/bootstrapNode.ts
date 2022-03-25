@@ -57,6 +57,7 @@ R2Td82MEcVM18a//+/l87rEG8BczWHPpJ/JbLEIfiWFf
   
   public async ignite (): Promise<void>  {
     if (this.ignited) throw new NoobCashError('Already ignited', 400);
+    await this.wallet.generateKeyPair();
     this.nodesInfo.push({ 
       url: this.configuration.url, 
       publicKey: this.wallet.publicKey,

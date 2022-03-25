@@ -46,10 +46,11 @@ app.get('/healthcheck', (_, res) => {
 
 // Initialize node, join network
 app.post('/ignite', async (req:  Request<any, any, PostIgniteDTO>, res: Response) => {
-  const logFileStream = fs.createWriteStream(`/home/user/.log${count}`);
+  const logFileStream = fs.createWriteStream(`/home/user/.log${count++}`);
   Logger.logFileStream = logFileStream;
 
   const configuration = req.body.configuration;
+  configuration.production = configuration.production as unknown as string === 'true';
   Logger.warn(`Starting new configuration: nodes: ${configuration.totalNodes} capacity: ${configuration.blockCapacity} difficulty: ${configuration.difficulty}`);
   if (isBootstrap)
     node = new BootstrapNode(configuration);

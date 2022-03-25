@@ -3,6 +3,9 @@ import { generateKeyPair } from "crypto";
 import { Logger } from "./utils";
 
 export class Wallet implements NoobCashWallet {
+  private production!: boolean;
+  private secret!: string;
+
   public publicKey!: string;
   public privateKey!: string;
 
@@ -10,28 +13,37 @@ export class Wallet implements NoobCashWallet {
     production: boolean,
     secret: string,
   ) {
-    if (!production) return;
-    generateKeyPair(
-      'rsa',
-      {
-        modulusLength: 530,
-        publicExponent: 0x10101,
-        publicKeyEncoding: {
-          type: 'pkcs1',
-          format: 'pem'
+    this.production = production;
+    this.secret = secret;
+  }
+
+  public async generateKeyPair(): Promise<void> {
+    const promise = new Promise<void>((resolve, _reject) => {
+      if (!this.production) resolve();
+      generateKeyPair(
+        'rsa',
+        {
+          modulusLength: 530,
+          publicExponent: 0x10101,
+          publicKeyEncoding: {
+            type: 'pkcs1',
+            format: 'pem'
+          },
+          privateKeyEncoding: {
+            type: 'pkcs8',
+            format: 'pem',
+            cipher: 'aes-256-cbc',
+            passphrase: this.secret,
+          }
         },
-        privateKeyEncoding: {
-          type: 'pkcs8',
-          format: 'pem',
-          cipher: 'aes-256-cbc',
-          passphrase: secret,
+        (_, publicKey, privateKey) => {
+          Logger.warn('Wallet rsa key pair created');
+          this.publicKey = publicKey;
+          this.privateKey = privateKey;
+          resolve()
         }
-      },
-      (_, publicKey, privateKey) => {
-        Logger.warn('Wallet rsa key pair created');
-        this.publicKey = publicKey;
-        this.privateKey = privateKey;
-      }
-    );
+      );
+    });
+    await promise;
   }
 }

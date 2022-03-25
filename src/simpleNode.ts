@@ -35,6 +35,7 @@ IkY2MMH7ICoWqZmh69dOasUDMk8fD+J7fCSMl6I5z4qW
 
   public async ignite (): Promise<void> {
     if (this.ignited) throw new NoobCashError('Already ignited', 400);
+    await this.wallet.generateKeyPair();
     while (true) {
       try {
         const data: PostRegisterDTO = {
