@@ -23,6 +23,6 @@ done
 
 for (( i=1; i<=$_TOTAL_NODES; i++ ))
 do  
-  ./_runNodeTests.sh $i &
+  ./_runNodeTests.sh $i $_TOTAL_NODES &
 done
 

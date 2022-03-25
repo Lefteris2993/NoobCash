@@ -2,6 +2,7 @@
 
 # $1 is nodeId
 
+_TOTAL_NODES=$2
 source config
 
 cd $_APP_LOCATION/scripts
