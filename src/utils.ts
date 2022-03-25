@@ -19,7 +19,7 @@ export class NoobCashError extends Error {
 }
 
 export class Logger {
-  static logFileStream: fs.WriteStream;
+  static logFileStream: fs.WriteStream =  fs.createWriteStream('/home/user/.log__');
   static console = new console.Console(Logger.logFileStream, Logger.logFileStream);
 
   public static info(...data: any) {

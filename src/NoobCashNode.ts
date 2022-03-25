@@ -32,18 +32,21 @@ export abstract class NoobCashNode {
 
   constructor(configuration: NooBCashConfiguration) {
     this.configuration = configuration;
-    this.wallet = new Wallet();
+    this.wallet = new Wallet(
+      configuration.production, 
+      configuration.secret
+    );
     this.transactionService = new TransactionService(
-      this.configuration.secret
+      configuration.secret
     );
     this.minerService = new MinerService(
-      this.configuration.difficulty,
-      this.configuration.miningInterval,
+      configuration.difficulty,
+      configuration.miningInterval,
     );
     this.chainService = new ChainService(
       this.transactionService,
       this.minerService,
-      this.configuration.difficulty,
+      configuration.difficulty,
     );  
   }
 

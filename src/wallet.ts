@@ -1,14 +1,16 @@
 import { NoobCashWallet } from "./interfaces";
 import { generateKeyPair } from "crypto";
-import { configuration } from "./configuration";
 import { Logger } from "./utils";
 
 export class Wallet implements NoobCashWallet {
   public publicKey!: string;
   public privateKey!: string;
 
-  constructor() {
-    if (!configuration.production) return;
+  constructor(
+    production: boolean,
+    secret: string,
+  ) {
+    if (!production) return;
     generateKeyPair(
       'rsa',
       {
@@ -22,7 +24,7 @@ export class Wallet implements NoobCashWallet {
           type: 'pkcs8',
           format: 'pem',
           cipher: 'aes-256-cbc',
-          passphrase: configuration.secret,
+          passphrase: secret,
         }
       },
       (_, publicKey, privateKey) => {
