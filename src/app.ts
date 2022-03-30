@@ -117,9 +117,9 @@ app.get('/chain', (_: Request, res: Response<GetChainResponseDTO | string>) => {
 
 // Create a new Transaction
 app.post('/transactions', async (req: Request<any, any, PostTransactionDTO>, res: Response) => {
-  const amount = req.body.amount;
+  const amount = Number(req.body.amount);
   const receiverAddress = req.body.receiverAddress;
-  const receiverId = req.body.receiverId;
+  const receiverId = Number(req.body.receiverId);
   try {
     node.postTransaction(amount, receiverAddress, receiverId);
     res.status(200).send('OK\n');
