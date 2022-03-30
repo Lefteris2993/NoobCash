@@ -17,8 +17,10 @@ import {
 } from './interfaces';
 import { Logger, NoobCashError } from './utils';
 import * as fs from 'fs';
+import cors from 'cors';
 
 const app = express();
+app.use(cors());
 const port = configuration.port;
 
 // Write pid to file

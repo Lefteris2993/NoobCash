@@ -89,7 +89,13 @@ export interface GetChainResponseDTO {
 }
 
 export interface GetTransactionsResponseDTO {
-  transactions: NoobCashTransaction[];
+  transactions: {
+    senderAddress: number;
+    receiverAddress: number;
+    amount: NoobCashCoins;
+    timestamp: number;
+    transactionId?: string;
+  }[];
 }
 
 export interface GetBalanceResponseDTO {

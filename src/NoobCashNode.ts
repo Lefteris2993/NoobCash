@@ -137,12 +137,24 @@ export abstract class NoobCashNode {
     const b = this.chainService.getLatestBlock();
     const utxos = b.utxos.find(x => x.owner === this.wallet.publicKey);
     if (!utxos) throw new NoobCashError('Internal server error', 500);
-    const amount = utxos.utxos.reduce((x, y) => x + y.amount , 0);
+    const amount = utxos.utxos.reduce((x, y) => x + Number(y.amount), 0);
     return { amount: amount };
   }
 
   public getTransactions(): GetTransactionsResponseDTO {
-    throw new NoobCashError('Not implemented', 501);
+    const b = this.chainService.getLatestBlock();
+    const ret = b.transactions.map(t => {
+      const receiverId = this.nodesInfo.findIndex(x => x.publicKey === t.receiverAddress);
+      const senderId = this.nodesInfo.findIndex(x => x.publicKey === t.senderAddress);
+      return {
+        receiverAddress: receiverId,
+        senderAddress: senderId,
+        timestamp: t.timestamp,
+        transactionId: t.transactionId,
+        amount: t.amount,
+      } 
+    })
+    return { transactions: ret };
   }
 
   public getChain(): GetChainResponseDTO {
