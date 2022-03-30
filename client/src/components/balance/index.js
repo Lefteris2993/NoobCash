@@ -1,20 +1,22 @@
 import { Box, Card, CardContent, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import * as React from 'react';
+import axios from 'axios';
+import { configuration } from '../../conf';
 
 
 function Balance() {
   const [balance, setBalance] = React.useState(0);
 
   React.useEffect(() => {
-    // axios.get(`${API}/balance`).get()
-    //     .then((res) => {
-                // const _amount = res.data.amount;
-                // setBalance(_amount); 
-    //     }).catch((err) => {
+    axios.get(`${configuration.API}/balance`)
+      .then((res) => {
+        const _amount = res.data.amount;
+        setBalance(_amount);
+      }).catch((err) => {
 
-    //     });
-});
+      });
+  }, []);
 
   return (
     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 5 }}>
